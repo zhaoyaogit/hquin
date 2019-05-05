@@ -1,5 +1,7 @@
 set(SRCS
 	EventLoop.cpp
+	Channel.cpp
+	Epoll.cpp
 )
 
 add_library(hquin ${SRCS})

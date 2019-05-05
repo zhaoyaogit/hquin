@@ -7,9 +7,14 @@ set(CXX_FLAGS
 	-g
 	-Wall
 	-Werror
+	-Wno-unused-parameter
 	-march=native
+	-fno-inline
+	# -MMD
 )
+string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CXX_FLAGS}")
 
+# set(CMAKE_VERBOSE_MAKEFILE ON)
 option(HQUIN_BUILD_TESTS "Build tests" OFF)
 option(HQUIN_BUILD_CLANG "clang++" OFF)
 option(HQUIN_BUILD_RELEASE "Release version" OFF)
