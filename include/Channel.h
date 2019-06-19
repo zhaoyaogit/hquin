@@ -28,14 +28,19 @@ class Channel {
     void enableWritable();
     void setReadCallback(const EventCallback &cb) { readCallback_ = cb; }
     void setWriteCallback(const EventCallback &cb) { readCallback_ = cb; }
+
+    // execute callback function depends on
+    // mask {NON_EVENT | READABLE_EVENT |WRITABLE_EVENT}
     void handleEvent();
+
+    // update itself to events queue by eventloop point.
     void update();
 
     int fd() const { return fd_; }
     int mask() const { return mask_; }
     void setMask(int mask) { mask_ = mask; }
     struct epoll_event event() {
-        return epevent_;
+        return event_;
     }
 
   private:
@@ -43,7 +48,7 @@ class Channel {
 
     int fd_;
     int mask_; // {NON_EVENT | READABLE_EVENT | WRITABLE_EVENT}
-    struct epoll_event epevent_;
+    struct epoll_event event_;
 
     EventCallback readCallback_;
     EventCallback writeCallback_;

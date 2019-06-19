@@ -2,9 +2,9 @@
 // Author:  definezxh@163.com
 // Date:    2019/04/29 19:07:55
 // Desc:
-//   class EventLoop is the eventloop program core by connecting Epoll and
+//   class EventLoop is the eventloop program core by connecting Epoller and
 //   Channel. A thread have a EventLoop only. Every event contain a member
-//   EventLoop in order to update event itself in Epoll by EventLoop.
+//   EventLoop in order to update event itself in Epoller by EventLoop.
 
 #pragma once
 
@@ -20,19 +20,21 @@ namespace hquin {
 #define WRITABLE_EVENT 2
 
 class Channel;
-class Epoll;
+class Epoller;
 
 class EventLoop {
   public:
-    typedef std::function<void(void)> EventCallback;
-
     EventLoop(size_t size);
     EventLoop(const EventLoop &) = delete;
     EventLoop &operator=(const EventLoop &) = delete;
     ~EventLoop();
 
+    // update event status actually do by epoll_ctrl(2).
     void updateChannel(Channel *channel);
     void stopEvent() { stop_ = true; }
+
+    // loop event queue, execute the callback function by ordinal.
+    // if an event takes too long, it will seriously affect other ready event.
     void loop();
 
     size_t size() const { return size_; }
@@ -40,7 +42,7 @@ class EventLoop {
   private:
     bool stop_;
     size_t size_; // max event num in this event loop.
-    std::unique_ptr<Epoll> epoll_;
+    std::unique_ptr<Epoller> epoller_;
     std::vector<Channel *> firedChannelList_;
 };
 

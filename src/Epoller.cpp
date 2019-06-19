@@ -1,11 +1,11 @@
-// File:    Epoll.cpp
+// File:    Epoller.cpp
 // Author:  definezxh@163.com
 // Date:    2019/04/30 14:40:37
 // Desc:
 //   Multiplexing IO, do dispatching actually.
 
 #include <Channel.h>
-#include <Epoll.h>
+#include <Epoller.h>
 #include <EventLoop.h>
 
 #include <unistd.h>
@@ -14,18 +14,18 @@ namespace hquin {
 
 // create a epoll instance.
 // epoll_create(size), size just greater than 0 for kernel.
-Epoll::Epoll()
-    : epfd_(epoll_create(1024)),
-      epevents_(std::make_unique<struct epoll_event>()) {
+Epoller::Epoller()
+    : epfd_(::epoll_create(1024)),
+      events_(std::make_unique<struct epoll_event>()) {
     if (epfd_ == -1) {
         // throw error
     }
 }
 
-Epoll::~Epoll() { close(epfd_); }
+Epoller::~Epoller() { close(epfd_); }
 
 // update the channel's event to epoll instance.
-void Epoll::updateEvent(Channel *channel) {
+void Epoller::updateEvent(Channel *channel) {
     int op = 0;
     int mask = channel->mask();
     struct epoll_event event = channel->event();
@@ -36,10 +36,10 @@ void Epoll::updateEvent(Channel *channel) {
     } else {
         op = EPOLL_CTL_MOD;
     }
-    epoll_ctl(epfd_, op, channel->fd(), &event);
+    ::epoll_ctl(epfd_, op, channel->fd(), &event);
 }
 
-void Epoll::fillFiredEvents(int numevents,
+void Epoller::fillFiredEvents(int numevents,
                               std::vector<Channel *> &firedChannelList) {
     int mask = 0;
     if (numevents <= 0)
@@ -47,7 +47,7 @@ void Epoll::fillFiredEvents(int numevents,
 
     for (int i = 0; i < numevents; ++i) {
         mask = 0;
-        struct epoll_event *e = epevents_.get() + i;
+        struct epoll_event *e = events_.get() + i;
         if (e->events & EPOLLIN)
             mask |= READABLE_EVENT;
         if (e->events & EPOLLOUT)
@@ -63,10 +63,10 @@ void Epoll::fillFiredEvents(int numevents,
     }
 }
 
-int Epoll::epoll(EventLoop *eventloop,
+int Epoller::epoll(EventLoop *eventloop,
                  std::vector<Channel *> &firedChannelList) {
     // call epoll_wait(2) with block when the timer is set.
-    int numevents = epoll_wait(epfd_, epevents_.get(), eventloop->size(), -1);
+    int numevents = ::epoll_wait(epfd_, events_.get(), eventloop->size(), -1);
 
     fillFiredEvents(numevents, firedChannelList);
     return numevents;

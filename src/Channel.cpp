@@ -14,19 +14,19 @@
 namespace hquin {
 
 Channel::Channel(EventLoop *eventloop, int fd)
-    : eventloop_(eventloop), fd_(fd), mask_(NON_EVENT), epevent_{0} {
-    epevent_.data.fd = fd_;
+    : eventloop_(eventloop), fd_(fd), mask_(NON_EVENT), event_{0} {
+    event_.data.fd = fd_;
 }
 
 Channel::~Channel() { close(fd_); }
 
 void Channel::enableReadable() {
-    epevent_.events |= EPOLLIN;
+    event_.events |= EPOLLIN;
     update();
 }
 
 void Channel::enableWritable() {
-    epevent_.events |= EPOLLOUT;
+    event_.events |= EPOLLOUT;
     update();
 }
 

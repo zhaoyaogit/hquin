@@ -2,18 +2,18 @@
 // Author:  definezxh@163.com
 // Date:    2019/04/29 20:03:38
 // Desc:
-//   class EventLoop is the eventloop program core by connecting Epoll and
+//   class EventLoop is the eventloop program core by connecting Epoller and
 //   Channel. A thread have a EventLoop only. Every event contain a member
-//   EventLoop in order to update event itself in Epoll by EventLoop.
+//   EventLoop in order to update event itself in Epoller by EventLoop.
 
 #include <EventLoop.h>
 #include <Channel.h>
-#include <Epoll.h>
+#include <Epoller.h>
 
 namespace hquin {
 
 EventLoop::EventLoop(size_t size)
-    : stop_(false), size_(size), epoll_(std::make_unique<Epoll>()) {}
+    : stop_(false), size_(size), epoller_(std::make_unique<Epoller>()) {}
 
 EventLoop::~EventLoop() {}
 
@@ -25,7 +25,7 @@ EventLoop::~EventLoop() {}
 void EventLoop::loop() {
     while (!stop_) {
         firedChannelList_.clear();
-        epoll_->epoll(this, firedChannelList_);
+        epoller_->epoll(this, firedChannelList_);
 
         for (Channel *channel : firedChannelList_) {
             if (channel->mask() != NON_EVENT)
@@ -35,7 +35,7 @@ void EventLoop::loop() {
 }
 
 void EventLoop::updateChannel(Channel *channel) {
-    epoll_->updateEvent(channel);
+    epoller_->updateEvent(channel);
 }
 
 } // namespace hquin
