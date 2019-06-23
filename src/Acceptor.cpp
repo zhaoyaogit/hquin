@@ -11,14 +11,13 @@
 
 namespace hquin {
 
-// complete necessary operation of network io, include socket(), bind(), 
+// complete necessary operation of network io, include socket(), bind(),
 // and set the callback fucntion when new connection arrived could exec.
 Acceptor::Acceptor(EventLoop *eventloop, const InetAddress &addr)
     : eventloop_(eventloop),
       sockfd_(::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)),
       acceptChannel_(eventloop_, sockfd_), servaddr_(addr), listenning_(false) {
-    struct sockaddr_in servaddr = addr.getSockAddrInet();
-    ::bind(sockfd_, (struct sockaddr *)&servaddr, sizeof(servaddr));
+    servaddr_.bindSockAddrInet(sockfd_);
     acceptChannel_.setReadCallback(std::bind(&Acceptor::handleRead, this));
 }
 
@@ -31,11 +30,10 @@ void Acceptor::listen() {
 
 // callback function.
 void Acceptor::handleRead() {
-    struct sockaddr_in servaddr = servaddr_.getSockAddrInet();
-    uint32_t addrlen = sizeof(servaddr);
-    int connfd = accept(sockfd_, (struct sockaddr *)&servaddr, &addrlen);
+    InetAddress newConnAddr(servaddr_);
+    int connfd = newConnAddr.acceptSockAddrInet(sockfd_);
     if (connfd >= 0) {
-        newConnectionCallback_(connfd, servaddr_);
+        newConnectionCallback_(connfd, newConnAddr);
     } else {
         ::close(connfd);
     }
