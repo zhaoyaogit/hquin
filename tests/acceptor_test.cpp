@@ -2,33 +2,29 @@
 // Author:  definezxh@163.com
 // Date:    2019/06/19 22:31:18
 // Desc:
-//   test acceptor handle new connection.
+//   get time routine of Echo client Ip and Address.
+//   Now the server only have Acceptor classes.
 
 #include <Acceptor.h>
-#include <EventLoop.h>
 #include <InetAddress.h>
+#include <EventLoop.h>
 
 #include <iostream>
 
 using namespace hquin;
 
-EventLoop *ploop;
-
-void newConnection(int fd, const InetAddress &addr) {
-    struct sockaddr_in clientaddr;
-    uint32_t len;
-    ::getpeername(fd, (struct sockaddr *)&clientaddr, &len);
-    InetAddress address(clientaddr);
-    address.setSockAddrInet(clientaddr);
-    std::cout << address.stringifyHost() << std::endl;
+void getTime(int fd, const InetAddress &address) {
+    InetAddress addr(address.getSockAddrInet());
+    time_t ticks = time(NULL);
+    std::cout << "Connect from " << addr.stringifyHost() << " at "
+              << ctime(&ticks);
 }
 
 int main() {
-    EventLoop loop(128);
-    ploop = &loop;
-    InetAddress address(8086);
-    Acceptor acceptor(ploop, address);
+    EventLoop loop(32);
+    InetAddress address(8002);
+    Acceptor acceptor(&loop, address);
+    acceptor.setNewConnectionCallback(getTime);
     acceptor.listen();
-    acceptor.setNewConnectionCallback(newConnection);
-    ploop->loop();
+    loop.loop();
 }

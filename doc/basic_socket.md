@@ -52,8 +52,10 @@ int bind(int sockfd, int backlog);
 服务器端正在等待相应的 TCP 三次握手过程(等待 ACK)，这些套接字状态处于 `SYN_REVD`。队列中的任何一项存留的时间为一个 `RTT`
 - 已完成队列，每个已完成三次握手过程的套接字，状态处于 `ESTABLISHED`
 
+当来自客户的 SYN 到达时，TCP 在未完成队列中创建一个新项，然后响应以三次握手的第二个分节：服务器的 SYN 响应，其中捎带对客户 SYN 的 ACK。这一项一直保留在未完成连接队列中，知道三次握手中的第三个分节（客户对服务器SYN的ACK）到达或者该项超时为止。
+
 ##### accept 函数
-由 TCP服务端调用，用于从已完成连接队列头返回下一个已完成连接，若已完成队列为空，则进程被投入睡眠(阻塞方式)
+由 TCP服务端调用，用于从已完成连接队列队头返回下一个已完成连接，若已完成队列为空，则进程被投入睡眠(阻塞方式)
 ```c
 #include <sys/socket.h>
 int accept(int sockfd, struct sockaddr *cleaddr, socklen_t *addrlen);
