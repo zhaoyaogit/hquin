@@ -11,8 +11,9 @@
 
 namespace hquin {
 
-// complete necessary operation of network io, include socket(), bind(),
-// and set the callback fucntion when new connection arrived could exec.
+// Complete necessary operation of network io, include socket(), bind(),
+// A pivotal reason to call these socket function here could see
+// `Acceptor::listen()`.
 Acceptor::Acceptor(EventLoop *eventloop, const InetAddress &addr)
     : eventloop_(eventloop),
       sockfd_(::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)),
@@ -21,14 +22,18 @@ Acceptor::Acceptor(EventLoop *eventloop, const InetAddress &addr)
     acceptChannel_.setReadCallback(std::bind(&Acceptor::handleRead, this));
 }
 
-// call listen() is ready to read.
+Acceptor::~Acceptor() { ::close(sockfd_); }
+
+// Update channel to epoll events must after listen() what maintaining two
+// queues. It is ease to cause the code confusion if call the listen() on the
+// Acceptor Owner(TcpServer) but call enable*() here.
 void Acceptor::listen() {
     listenning_ = true;
-    acceptChannel_.enableReadable();
     ::listen(sockfd_, SOMAXCONN);
+    acceptChannel_.enableReadable();
 }
 
-// callback function.
+// Callback function.
 void Acceptor::handleRead() {
     InetAddress newConnAddr(servaddr_);
     int connfd = newConnAddr.acceptSockAddrInet(sockfd_);

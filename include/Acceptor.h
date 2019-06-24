@@ -24,6 +24,7 @@ class Acceptor {
     Acceptor(EventLoop *eventloop, const InetAddress &addr);
     Acceptor(const Acceptor &) = delete;
     Acceptor &operator=(const Acceptor &) = delete;
+    ~Acceptor();
 
     void setNewConnectionCallback(const NewConnectionCallback &cb) {
         newConnectionCallback_ = cb;
@@ -31,7 +32,7 @@ class Acceptor {
 
     bool listenning() const { return listenning_; }
 
-    // listen() could execute on constructor. 
+    // listen() could execute on constructor.
     // now it is flexible as a member function.
     void listen();
 
