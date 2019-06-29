@@ -42,7 +42,7 @@ int InetAddress::acceptSockAddrInet(int sockfd) {
     return ::accept(sockfd, (struct sockaddr *)&inetAddr_, &len);
 }
 
-std::string InetAddress::stringifyHost() {
+std::string InetAddress::stringifyHost() const {
     char buf[32];
     char host[INET_ADDRSTRLEN] = "INVALID"; // set initial value
     ::inet_ntop(AF_INET, &inetAddr_.sin_addr, host, sizeof(host));

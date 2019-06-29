@@ -4,6 +4,8 @@ set(SRCS
 	Epoller.cpp
 	InetAddress.cpp
 	Acceptor.cpp
+	TcpServer.cpp
+	TcpConnection
 )
 
 add_library(hquin ${SRCS})

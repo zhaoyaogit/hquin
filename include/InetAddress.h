@@ -33,7 +33,7 @@ class InetAddress {
     void setSockAddrInet(const struct sockaddr_in &addr) { inetAddr_ = addr; }
 
     // convert network binay to string form (addr:port).
-    std::string stringifyHost();
+    std::string stringifyHost() const;
 
     uint16_t getPort() const { return inetAddr_.sin_port; }
 

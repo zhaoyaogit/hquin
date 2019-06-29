@@ -38,4 +38,8 @@ void EventLoop::updateChannel(Channel *channel) {
     epoller_->updateEvent(channel);
 }
 
+void EventLoop::removeChannel(Channel *channel) {
+    epoller_->removeEvent(channel);
+}
+
 } // namespace hquin

@@ -27,6 +27,9 @@ class Epoller {
     // actual operation of update channel.
     void updateEvent(Channel *channel);
 
+    // remove event and its owner Channel
+    void removeEvent(Channel *channel);
+
     // fill the ready events to fired channel list.
     void fillFiredEvents(int numevents,
                          std::vector<Channel *> &firedChannelList);

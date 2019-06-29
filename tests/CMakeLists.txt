@@ -3,3 +3,6 @@ target_link_libraries(event_test hquin)
 
 add_executable(acceptor_test acceptor_test.cpp)
 target_link_libraries(acceptor_test hquin)
+
+add_executable(tcpserver_test tcpserver_test.cpp)
+target_link_libraries(tcpserver_test hquin)

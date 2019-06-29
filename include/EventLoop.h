@@ -2,9 +2,9 @@
 // Author:  definezxh@163.com
 // Date:    2019/04/29 19:07:55
 // Desc:
-//   class EventLoop is the eventloop program core by connecting Epoller and
+//   EventLoop is the eventloop program core by connecting Epoller and
 //   Channel. A thread have a EventLoop only. Every event contain a member
-//   EventLoop in order to update event itself in Epoller by EventLoop.
+//   EventLoop pointer in order to update event itself in Epoller by EventLoop.
 
 #pragma once
 
@@ -29,8 +29,13 @@ class EventLoop {
     EventLoop &operator=(const EventLoop &) = delete;
     ~EventLoop();
 
-    // update event status actually do by epoll_ctrl(2).
+    // EventLoop has no channel member.
+    // update event status actually do by epoll_ctl(2).
     void updateChannel(Channel *channel);
+
+    // remove channel(event)
+    void removeChannel(Channel *channel);
+
     void stopEvent() { stop_ = true; }
 
     // loop event queue, execute the callback function by ordinal.

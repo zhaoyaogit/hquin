@@ -24,10 +24,15 @@ class Channel {
     Channel &operator=(const Channel &) = delete;
     ~Channel();
 
+    // FIXME: mask and event error
     void enableReadable();
     void enableWritable();
+    void disableAll() {}
+  
     void setReadCallback(const EventCallback &cb) { readCallback_ = cb; }
-    void setWriteCallback(const EventCallback &cb) { readCallback_ = cb; }
+    void setWriteCallback(const EventCallback &cb) { writeCallback_ = cb; }
+    void setErrorCallback(const EventCallback &cb) { errorCallback_ = cb; }
+    void setCloseCallback(const EventCallback &cb) { closeCallback_ = cb; }
 
     // execute callback function depends on
     // mask {NON_EVENT | READABLE_EVENT |WRITABLE_EVENT}
@@ -53,6 +58,7 @@ class Channel {
     EventCallback readCallback_;
     EventCallback writeCallback_;
     EventCallback errorCallback_;
+    EventCallback closeCallback_;
 };
 
 } // namespace hquin

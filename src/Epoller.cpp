@@ -22,7 +22,7 @@ Epoller::Epoller()
     }
 }
 
-Epoller::~Epoller() { close(epfd_); }
+Epoller::~Epoller() { ::close(epfd_); }
 
 // update the channel's event to epoll instance.
 void Epoller::updateEvent(Channel *channel) {
@@ -36,7 +36,17 @@ void Epoller::updateEvent(Channel *channel) {
     } else {
         op = EPOLL_CTL_MOD;
     }
+    // FIXME, syscall error handle
     ::epoll_ctl(epfd_, op, channel->fd(), &event);
+}
+
+void Epoller::removeEvent(Channel *channel) {
+    struct epoll_event event = channel->event();
+
+    channelMap_.erase(channel->fd());
+
+    // FIXME, syscall error handle
+    ::epoll_ctl(epfd_, EPOLL_CTL_DEL, channel->fd(), &event);
 }
 
 void Epoller::fillFiredEvents(int numevents,
@@ -64,7 +74,7 @@ void Epoller::fillFiredEvents(int numevents,
 }
 
 int Epoller::epoll(EventLoop *eventloop,
-                 std::vector<Channel *> &firedChannelList) {
+                   std::vector<Channel *> &firedChannelList) {
     // call epoll_wait(2) with block when the timer is set.
     int numevents = ::epoll_wait(epfd_, events_.get(), eventloop->size(), -1);
 
