@@ -33,15 +33,6 @@ InetAddress::InetAddress(uint16_t port) {
 
 InetAddress::InetAddress(const struct sockaddr_in &addr) : inetAddr_(addr) {}
 
-void InetAddress::bindSockAddrInet(int sockfd) {
-    ::bind(sockfd, (struct sockaddr *)&inetAddr_, sizeof(inetAddr_));
-}
-
-int InetAddress::acceptSockAddrInet(int sockfd) {
-    socklen_t len = sizeof(inetAddr_);
-    return ::accept(sockfd, (struct sockaddr *)&inetAddr_, &len);
-}
-
 std::string InetAddress::stringifyHost() const {
     char buf[32];
     char host[INET_ADDRSTRLEN] = "INVALID"; // set initial value

@@ -3,6 +3,7 @@ set(SRCS
 	Channel.cpp
 	Epoller.cpp
 	InetAddress.cpp
+	Socket.cpp
 	Acceptor.cpp
 	TcpServer.cpp
 	TcpConnection

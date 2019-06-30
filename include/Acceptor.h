@@ -7,7 +7,7 @@
 #pragma once
 
 #include <Channel.h>
-#include <InetAddress.h>
+#include <Socket.h>
 
 #include <functional>
 #include <memory>
@@ -15,6 +15,7 @@
 namespace hquin {
 
 class EventLoop;
+class InetAddress;
 
 class Acceptor {
   public:
@@ -40,10 +41,9 @@ class Acceptor {
     void handleRead();
 
     EventLoop *eventloop_;
-    int sockfd_;
+    Socket acceptSocket_;
     Channel acceptChannel_;
     NewConnectionCallback newConnectionCallback_;
-    InetAddress servaddr_;
     bool listenning_;
 };
 

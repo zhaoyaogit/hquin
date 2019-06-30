@@ -37,12 +37,6 @@ class InetAddress {
 
     uint16_t getPort() const { return inetAddr_.sin_port; }
 
-    // bind(2)
-    void bindSockAddrInet(int sockfd);
-
-    // accept(2)
-    int acceptSockAddrInet(int sockfd);
-
   private:
     struct sockaddr_in inetAddr_;
 };
