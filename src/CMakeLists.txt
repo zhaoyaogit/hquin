@@ -6,7 +6,8 @@ set(SRCS
 	Socket.cpp
 	Acceptor.cpp
 	TcpServer.cpp
-	TcpConnection
+	TcpConnection.cpp
+	Timestap.cpp
 )
 
 add_library(hquin ${SRCS})
