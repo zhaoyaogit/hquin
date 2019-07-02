@@ -73,13 +73,15 @@ void Epoller::fillFiredEvents(int numevents,
     }
 }
 
-int Epoller::epoll(EventLoop *eventloop,
-                   std::vector<Channel *> &firedChannelList) {
-    // call epoll_wait(2) with block when the timer is set.
+Timestap Epoller::epoll(EventLoop *eventloop,
+                        std::vector<Channel *> &firedChannelList) {
+    // call epoll_wait(2) with block.
     int numevents = ::epoll_wait(epfd_, events_.get(), eventloop->size(), -1);
+    Timestap receiveTime = Timestap::now();
 
     fillFiredEvents(numevents, firedChannelList);
-    return numevents;
+
+    return receiveTime;
 }
 
 } // namespace hquin

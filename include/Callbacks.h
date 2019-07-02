@@ -6,18 +6,21 @@
 
 #pragma once
 
+#include <Timestap.h>
+
 #include <functional>
 #include <memory>
 
 namespace hquin {
 
 class TcpConnection;
+class Buffer;
 
 typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 
 typedef std::function<void(const TcpConnectionPtr &)> ConnectionCallback;
 
-typedef std::function<void(const TcpConnectionPtr &, const char *, size_t len)>
+typedef std::function<void(const TcpConnectionPtr &, Buffer *, Timestap)>
     MessageCallback;
 
 typedef std::function<void(const TcpConnectionPtr &)> CloseCallback;

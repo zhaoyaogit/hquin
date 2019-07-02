@@ -6,6 +6,7 @@
 
 #include <EventLoop.h>
 #include <Channel.h>
+#include <Timestap.h>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -19,9 +20,9 @@ using namespace hquin;
 
 EventLoop *eventloop;
 
-void hello(int fd) {
-    std::cout << "fd: " << fd << "\n";
-    // eventloop->stopEvent();
+void hello(Timestap timestap) {
+    std::cout << timestap.formatTimestap() << std::endl;
+    eventloop->stopEvent();
     sleep(1);
 }
 

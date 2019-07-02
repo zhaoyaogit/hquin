@@ -7,6 +7,7 @@
 #include <TcpServer.h>
 #include <InetAddress.h>
 #include <EventLoop.h>
+#include <Buffer.h>
 
 #include <iostream>
 
@@ -23,9 +24,11 @@ void onConnection(const TcpConnectionPtr &conn) {
     }
 }
 
-void onMessage(const TcpConnectionPtr &conn, const char *data, ssize_t len) {
-    printf("onMessage(): received %zd bytes from connection [%s]\n", len,
-           conn->name().c_str());
+void onMessage(const TcpConnectionPtr &conn, Buffer *buf, Timestap timestap) {
+    printf("onMessage(): received %zd bytes from connection [%s]\n",
+           buf->readableBytes(), conn->name().c_str());
+    printf("[%s] receive data: %s\n", timestap.formatTimestap().c_str(),
+           buf->stringifyReadable().c_str());
 }
 
 int main() {

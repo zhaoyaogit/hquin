@@ -9,6 +9,7 @@
 
 #include <Callbacks.h>
 #include <InetAddress.h>
+#include <Buffer.h>
 
 #include <memory>
 #include <string>
@@ -49,7 +50,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
     enum StateE { kConnecting, kConnected, kDisconnected };
 
     void setState(StateE state) { state_ = state; }
-    void handleRead();
+    void handleRead(Timestap receiveTime);
     void handleWrite();
     void handleClose();
     void handleError();
@@ -62,6 +63,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
     ConnectionCallback connectionCallback_;
     MessageCallback messageCallback_;
     CloseCallback closeCallback_;
+    Buffer inputBuffer_;
 };
 
 } // namespace hquin

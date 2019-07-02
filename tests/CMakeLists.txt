@@ -9,3 +9,6 @@ target_link_libraries(tcpserver_test hquin)
 
 add_executable(timestap_test timestap_test.cpp)
 target_link_libraries(timestap_test hquin)
+
+add_executable(buffer_test buffer_test.cpp)
+target_link_libraries(buffer_test hquin)

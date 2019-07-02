@@ -9,6 +9,7 @@
 #include <EventLoop.h>
 #include <Channel.h>
 #include <Epoller.h>
+#include <Timestap.h>
 
 namespace hquin {
 
@@ -25,11 +26,13 @@ EventLoop::~EventLoop() {}
 void EventLoop::loop() {
     while (!stop_) {
         firedChannelList_.clear();
-        epoller_->epoll(this, firedChannelList_);
+
+        // record the timestap of new connection arrived.
+        Timestap receiveTime = epoller_->epoll(this, firedChannelList_);
 
         for (Channel *channel : firedChannelList_) {
             if (channel->mask() != NON_EVENT)
-                channel->handleEvent();
+                channel->handleEvent(receiveTime);
         }
     }
 }

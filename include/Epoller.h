@@ -6,6 +6,8 @@
 
 #pragma once
 
+#include <Timestap.h>
+
 #include <sys/epoll.h>
 
 #include <map>
@@ -34,8 +36,9 @@ class Epoller {
     void fillFiredEvents(int numevents,
                          std::vector<Channel *> &firedChannelList);
 
-    // epoll_wait(2)
-    int epoll(EventLoop *eventloop, std::vector<Channel *> &firedChannelList);
+    // epoll_wait(2), and return receive timestap of new connection arrived.
+    Timestap epoll(EventLoop *eventloop,
+                   std::vector<Channel *> &firedChannelList);
 
   private:
     int epfd_;

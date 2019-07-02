@@ -8,6 +8,7 @@
 
 #include <Channel.h>
 #include <EventLoop.h>
+#include <Timestap.h>
 
 #include <unistd.h>
 
@@ -31,9 +32,9 @@ void Channel::enableWritable() {
 }
 
 // The channle's event corresponding callback function.
-void Channel::handleEvent() {
+void Channel::handleEvent(Timestap receiveTime) {
     if (mask_ == READABLE_EVENT)
-        readCallback_(fd_);
+        readCallback_(receiveTime);
     else if (mask_ == WRITABLE_EVENT)
         writeCallback_(fd_);
 }

@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Timestap.h>
+
 #include <sys/epoll.h>
 
 #include <functional>
@@ -19,6 +21,7 @@ class EventLoop;
 class Channel {
   public:
     typedef std::function<void(int)> EventCallback;
+    typedef std::function<void(Timestap)> ReadEventCallback;
     Channel(EventLoop *eventloop, int fd);
     Channel(const Channel &) = delete;
     Channel &operator=(const Channel &) = delete;
@@ -28,15 +31,15 @@ class Channel {
     void enableReadable();
     void enableWritable();
     void disableAll() {}
-  
-    void setReadCallback(const EventCallback &cb) { readCallback_ = cb; }
+
+    void setReadCallback(const ReadEventCallback &cb) { readCallback_ = cb; }
     void setWriteCallback(const EventCallback &cb) { writeCallback_ = cb; }
     void setErrorCallback(const EventCallback &cb) { errorCallback_ = cb; }
     void setCloseCallback(const EventCallback &cb) { closeCallback_ = cb; }
 
     // execute callback function depends on
     // mask {NON_EVENT | READABLE_EVENT |WRITABLE_EVENT}
-    void handleEvent();
+    void handleEvent(Timestap receiveTime);
 
     // update itself to events queue by eventloop point.
     void update();
@@ -55,7 +58,7 @@ class Channel {
     int mask_; // {NON_EVENT | READABLE_EVENT | WRITABLE_EVENT}
     struct epoll_event event_;
 
-    EventCallback readCallback_;
+    ReadEventCallback readCallback_;
     EventCallback writeCallback_;
     EventCallback errorCallback_;
     EventCallback closeCallback_;

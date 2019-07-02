@@ -1,13 +1,14 @@
 set(SRCS
-	EventLoop.cpp
+	Buffer.cpp
+	Timestap.cpp
 	Channel.cpp
+	EventLoop.cpp
 	Epoller.cpp
 	InetAddress.cpp
 	Socket.cpp
 	Acceptor.cpp
 	TcpServer.cpp
 	TcpConnection.cpp
-	Timestap.cpp
 )
 
 add_library(hquin ${SRCS})

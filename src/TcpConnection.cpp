@@ -13,16 +13,18 @@
 #include <stdio.h>
 #include <string.h>
 
+using namespace std::placeholders;
+
 namespace hquin {
 
 TcpConnection::TcpConnection(EventLoop *loop, std::string name, int sockfd,
                              const InetAddress &peerAddr)
     : eventloop_(loop), name_(name), state_(kConnecting),
       channel_(std::make_unique<Channel>(eventloop_, sockfd)),
-      peerAddr_(peerAddr) {
-    printf("TcpConnection ctor %s at %p, fd = %d\n", peerAddr_.stringifyHost().c_str(), this,
-           sockfd);
-    channel_->setReadCallback(std::bind(&TcpConnection::handleRead, this));
+      peerAddr_(peerAddr), inputBuffer_() {
+    printf("TcpConnection ctor %s at %p, fd = %d\n",
+           peerAddr_.stringifyHost().c_str(), this, sockfd);
+    channel_->setReadCallback(std::bind(&TcpConnection::handleRead, this, _1));
     channel_->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
     channel_->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
     channel_->setErrorCallback(std::bind(&TcpConnection::handleError, this));
@@ -45,11 +47,11 @@ void TcpConnection::connectDestroyed() {
     eventloop_->removeChannel(channel_.get());
 }
 
-void TcpConnection::handleRead() {
-    char buf[65536];
-    size_t n = ::read(channel_->fd(), buf, sizeof(buf));
+void TcpConnection::handleRead(Timestap receiveTime) {
+    int saveErrno = 0;
+    const int n = inputBuffer_.readFd(channel_->fd(), &saveErrno);
     if (n > 0) {
-        messageCallback_(shared_from_this(), buf, n);
+        messageCallback_(shared_from_this(), &inputBuffer_, receiveTime);
     } else if (n == 0) {
         handleClose();
     } else {
