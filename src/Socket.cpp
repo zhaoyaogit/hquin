@@ -24,7 +24,9 @@ void Socket::listen() { ::listen(sockfd_, SOMAXCONN); }
 int Socket::accept(InetAddress *peerAddr) {
     struct sockaddr_in addr;
     socklen_t len = sizeof(addr);
-    int connfd = ::accept(sockfd_, (struct sockaddr *)&addr, &len);
+    // int connfd = ::accept(sockfd_, (struct sockaddr *)&addr, &len);
+    int connfd = ::accept4(sockfd_, (struct sockaddr *)&addr, &len,
+                           SOCK_NONBLOCK | SOCK_CLOEXEC);
     if (connfd > 0) {
         peerAddr->setSockAddrInet(addr);
     }
