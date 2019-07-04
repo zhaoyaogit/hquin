@@ -12,3 +12,6 @@ target_link_libraries(timestap_test hquin)
 
 add_executable(buffer_test buffer_test.cpp)
 target_link_libraries(buffer_test hquin)
+
+add_executable(log_test log_test.cpp)
+target_link_libraries(log_test hquin)

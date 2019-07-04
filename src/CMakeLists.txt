@@ -1,6 +1,7 @@
 set(SRCS
-	Buffer.cpp
 	Timestap.cpp
+	Log.cpp
+	Buffer.cpp
 	Channel.cpp
 	EventLoop.cpp
 	Epoller.cpp
