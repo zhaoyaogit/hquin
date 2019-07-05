@@ -28,7 +28,7 @@ const char *toStringLevel(LogLevel level) {
     }
 }
 
-// init a log line necessary info
+// append log line necessary info into buffer.
 LogLine::LogLine(LogLevel level, const char *file, const char *function,
                  uint32_t line)
     : usedBytes_(0), bufferSize_(kInitBufferSize) {
@@ -40,16 +40,40 @@ LogLine::LogLine(LogLevel level, const char *file, const char *function,
 
 LogLine::~LogLine() {}
 
-// T is built-in type.
+// append a item log info to buffer.
 template <typename T> void LogLine::append(T arg) {
-    resizeIfNeeded(sizeof(arg));
     *reinterpret_cast<T *>(buffer()) = arg;
     usedBytes_ += sizeof(arg);
+}
+
+// a nonfixed log info occupy 2 item with (type, arg)
+template <typename T> void LogLine::append(T arg, uint8_t argType) {
+    resizeIfNeeded(sizeof(arg) + sizeof(argType));
+    append(argType);
+    append(arg);
+}
+
+// fetch one item log info to stream from buffer
+template <typename T>
+char *LogLine::fetch(std::ofstream &ofs, char *start, T *null) {
+    T arg = *reinterpret_cast<T *>(start);
+    ofs << arg;
+    return start + sizeof(T);
+}
+
+// separating of literal processing is due to Literal::literal() exist.
+char *LogLine::fetchLiteral(std::ofstream &ofs, char *start) {
+    Literal arg = *reinterpret_cast<Literal *>(start);
+    ofs << arg.literal();
+    return start + sizeof(Literal);
 }
 
 // format log line to ofstream.
 void LogLine::stringify(std::ofstream &ofs) {
     char *b = begin();
+    const char *const end = buffer();
+
+    // filename, function, line, log level is fixed log info.
     Literal file = *reinterpret_cast<Literal *>(b);
     b += sizeof(Literal);
     Literal function = *reinterpret_cast<Literal *>(b);
@@ -58,50 +82,88 @@ void LogLine::stringify(std::ofstream &ofs) {
     b += sizeof(uint32_t);
     Literal level = *reinterpret_cast<Literal *>(b);
     b += sizeof(Literal);
-    Literal log = *reinterpret_cast<Literal *>(b);
-    b += sizeof(Literal);
+
+    // format fixed log info to stream.
     ofs << '[' << Timestap::now().formatTimestap() << ']' << '['
         << level.literal() << ']' << '[' << file.literal() << ':'
-        << function.literal() << ' ' << line << ']' << log.literal() << '\n';
+        << function.literal() << ' ' << line << ']';
+
+    // fetch nonfixed log info to stream.
+    stringify(ofs, b, end);
+
+    ofs << std::endl;
+}
+
+void LogLine::stringify(std::ofstream &ofs, char *start,
+                        const char *const end) {
+
+    if (start == end)
+        return;
+
+    uint8_t argType = static_cast<uint8_t>(*start);
+    start++; // skip arg type
+
+    switch (argType) {
+    case 1:
+        return stringify(ofs, fetch(ofs, start, static_cast<char *>(nullptr)),
+                         end);
+    case 2:
+        return stringify(
+            ofs, fetch(ofs, start, static_cast<int32_t *>(nullptr)), end);
+    case 3:
+        return stringify(
+            ofs, fetch(ofs, start, static_cast<uint32_t *>(nullptr)), end);
+    case 4:
+        return stringify(
+            ofs, fetch(ofs, start, static_cast<int64_t *>(nullptr)), end);
+    case 5:
+        return stringify(
+            ofs, fetch(ofs, start, static_cast<uint64_t *>(nullptr)), end);
+    case 6:
+        return stringify(ofs, fetch(ofs, start, static_cast<double *>(nullptr)),
+                         end);
+    case 7:
+        return stringify(ofs, fetchLiteral(ofs, start), end);
+    }
 }
 
 LogLine &LogLine::operator<<(char arg) {
-    append(arg);
+    append(arg, 1);
     return *this;
 }
 
 LogLine &LogLine::operator<<(int32_t arg) {
-    append(arg);
+    append(arg, 2);
     return *this;
 }
 
 LogLine &LogLine::operator<<(uint32_t arg) {
-    append(arg);
+    append(arg, 3);
     return *this;
 }
 
 LogLine &LogLine::operator<<(int64_t arg) {
-    append(arg);
+    append(arg, 4);
     return *this;
 }
 
 LogLine &LogLine::operator<<(uint64_t arg) {
-    append(arg);
+    append(arg, 5);
     return *this;
 }
 
 LogLine &LogLine::operator<<(double arg) {
-    append(arg);
+    append(arg, 6);
     return *this;
 }
 
 LogLine &LogLine::operator<<(const char *arg) {
-    append(Literal(arg));
+    append(Literal(arg), 7);
     return *this;
 }
 
 LogLine &LogLine::operator<<(const std::string &arg) {
-    append(arg);
+    append(Literal(arg.c_str()), 7);
     return *this;
 }
 

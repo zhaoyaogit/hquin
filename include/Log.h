@@ -17,6 +17,7 @@ namespace hquin {
 
 enum LogLevel { INFO, WARN, ERROR };
 
+// A line log info, usage is same as 'std::cout'.
 class LogLine {
   public:
     LogLine(LogLevel level, const char *file, const char *function,
@@ -33,17 +34,23 @@ class LogLine {
     LogLine &operator<<(const std::string &arg);
 
     void stringify(std::ofstream &ofs);
+    void stringify(std::ofstream &ofs, char *start, const char *const end);
 
-    // append log to buffer.
-    template <typename T> void append(T arg);
-    // void append(std::string &arg);
-    // void append(const char *arg, size_t len);
-
+    // Literal is used to wrap 'const char *' that
+    // could get the @c string by address.
     struct Literal {
         explicit Literal(const char *s) : str(s) {}
         const char *literal() { return str; }
         const char *str;
     };
+
+    // append log info to buffer.
+    template <typename T> void append(T arg);
+    template <typename T> void append(T arg, uint8_t argType);
+
+    // fetch log info to ofstream from buffer.
+    template <typename T> char *fetch(std::ofstream &ofs, char *start, T *null);
+    char *fetchLiteral(std::ofstream &ofs, char *start);
 
   private:
     // get first unused bytes address.
@@ -73,7 +80,7 @@ class FileWriter {
     FileWriter();
     FileWriter(std::string fileName, uint32_t rollFileBytes);
 
-    // write LogLine to ofstream.
+    // write LogLine to fstream.
     void write(LogLine &line);
 
     static FileWriter &uniqueWriter();
