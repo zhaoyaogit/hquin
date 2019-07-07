@@ -27,35 +27,40 @@ class Channel {
     Channel &operator=(const Channel &) = delete;
     ~Channel();
 
-    // FIXME: mask and event error
+    // update the event.
     void enableReadable();
     void enableWritable();
-    void disableAll() {}
+    void disableAll();
 
     void setReadCallback(const ReadEventCallback &cb) { readCallback_ = cb; }
     void setWriteCallback(const EventCallback &cb) { writeCallback_ = cb; }
     void setErrorCallback(const EventCallback &cb) { errorCallback_ = cb; }
     void setCloseCallback(const EventCallback &cb) { closeCallback_ = cb; }
 
-    // execute callback function depends on
-    // mask {NON_EVENT | READABLE_EVENT |WRITABLE_EVENT}
+    // execute callback function depends on event type.
     void handleEvent(Timestap receiveTime);
 
-    // update itself to events queue by eventloop point.
-    void update();
-
     int fd() const { return fd_; }
-    int mask() const { return mask_; }
-    void setMask(int mask) { mask_ = mask; }
-    struct epoll_event event() {
+
+    void setEvent(const struct epoll_event &event) { event_ = event; }
+    struct epoll_event getEvent() const {
         return event_;
     }
 
-  private:
-    EventLoop *eventloop_;
+    // event type serial.
+    bool isNonEvent() const { return event_.events == kNonEvent; }
+    bool isWriting() const { return event_.events & kWriteEvent; }
 
+  private:
+    // update itself to event loop.
+    void update();
+
+    static const uint32_t kNonEvent;
+    static const uint32_t kReadEvent;
+    static const uint32_t kWriteEvent;
+
+    EventLoop *eventloop_;
     int fd_;
-    int mask_; // {NON_EVENT | READABLE_EVENT | WRITABLE_EVENT}
     struct epoll_event event_;
 
     ReadEventCallback readCallback_;

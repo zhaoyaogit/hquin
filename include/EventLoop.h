@@ -15,10 +15,6 @@
 
 namespace hquin {
 
-#define NON_EVENT 0
-#define READABLE_EVENT 1
-#define WRITABLE_EVENT 2
-
 class Channel;
 class Epoller;
 

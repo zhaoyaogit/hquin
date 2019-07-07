@@ -31,7 +31,7 @@ void EventLoop::loop() {
         Timestap receiveTime = epoller_->epoll(this, firedChannelList_);
 
         for (Channel *channel : firedChannelList_) {
-            if (channel->mask() != NON_EVENT)
+            if (!channel->isNonEvent())
                 channel->handleEvent(receiveTime);
         }
     }

@@ -14,28 +14,38 @@
 
 namespace hquin {
 
+const uint32_t Channel::kNonEvent = 0;
+const uint32_t Channel::kReadEvent = EPOLLIN;
+const uint32_t Channel::kWriteEvent = EPOLLOUT;
+
 Channel::Channel(EventLoop *eventloop, int fd)
-    : eventloop_(eventloop), fd_(fd), mask_(NON_EVENT), event_{0} {
+    : eventloop_(eventloop), fd_(fd), event_{0} {
     event_.data.fd = fd_;
 }
 
 Channel::~Channel() { close(fd_); }
 
 void Channel::enableReadable() {
-    event_.events |= EPOLLIN;
+    event_.events |= kReadEvent;
     update();
 }
 
 void Channel::enableWritable() {
-    event_.events |= EPOLLOUT;
+    event_.events |= kWriteEvent;
+    update();
+}
+
+void Channel::disableAll() {
+    event_.events = kNonEvent;
     update();
 }
 
 // The channle's event corresponding callback function.
 void Channel::handleEvent(Timestap receiveTime) {
-    if (mask_ == READABLE_EVENT)
+    if (event_.events & kReadEvent)
         readCallback_(receiveTime);
-    else if (mask_ == WRITABLE_EVENT)
+
+    if (event_.events & kWriteEvent)
         writeCallback_(fd_);
 }
 
