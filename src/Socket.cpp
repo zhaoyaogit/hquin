@@ -33,4 +33,7 @@ int Socket::accept(InetAddress *peerAddr) {
     return connfd;
 }
 
+// half-close
+void Socket::shutdownWrite() { ::shutdown(sockfd_, SHUT_WR); }
+
 } // namespace hquin

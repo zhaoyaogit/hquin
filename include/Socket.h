@@ -29,6 +29,9 @@ class Socket {
     // not const, peerAddr will be change in accept(2).
     int accept(InetAddress *peerAddr);
 
+    // close one end of writing.
+    void shutdownWrite();
+
   private:
     const int sockfd_; // shoulde not be change.
 };
