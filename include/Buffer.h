@@ -46,10 +46,16 @@ class Buffer {
     // stringify readable data.
     std::string stringifyReadable();
 
+    // change readIndex_
+    void retrieve(size_t len) {
+        assert(len <= readableBytes());
+        readIndex_ += len;
+    }
+
   private:
     std::vector<char> buffer_; // let STL to handle memory.
     size_t readIndex_;
     size_t writeIndex_;
-};
+}; // namespace hquin
 
 } // namespace hquin

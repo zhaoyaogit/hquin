@@ -6,6 +6,7 @@
 //   considering performance for the time being.
 
 #include <Buffer.h>
+#include <Log.h>
 
 #include <unistd.h>
 
@@ -15,14 +16,17 @@ namespace hquin {
 
 // change the buffer capacity or move data in itself buffer
 void Buffer::modifySpace(size_t len) {
-    if (writeIndex_ - readIndex_ + len < buffer_.capacity()) {
-        // capacity is enough to write data. in order to reduce number of
-        // resize, we could move data to the front of buffer.
-        size_t writable = writableBytes();
+    if (len < writableBytes()) {
+        // writable bytes is enough.
+        // do nothing.
+    } else if (writeIndex_ - readIndex_ + len < buffer_.capacity()) {
+        // total free buffer is enough to write data. in order to reduce number
+        // of resize, we could move data to the front of buffer.
+        size_t readable = readableBytes();
         std::copy(beginRead(), beginWrite(), buffer_.data());
         writeIndex_ -= readIndex_;
         readIndex_ = 0;
-        assert(writable == writableBytes()); // check
+        assert(readable == readableBytes()); // readable should not change.
     } else {
         buffer_.reserve(writeIndex_ + len);
     }
