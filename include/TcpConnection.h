@@ -18,6 +18,7 @@ namespace hquin {
 
 class EventLoop;
 class Channel;
+class Socket;
 
 // FIXME, use std::shared_from_this
 class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
@@ -44,10 +45,17 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
     // called when TcpServer accept a new connection.
     void connectEstablished();
 
+    // destroyted the connection
     void connectDestroyed();
 
+    // send data to sockfd.
+    void send(const std::string &message);
+
+    // close one end of the writing.
+    void shutdown();
+
   private:
-    enum StateE { kConnecting, kConnected, kDisconnected };
+    enum StateE { kConnecting, kConnected, kDisconnecting, kDisconnected };
 
     void setState(StateE state) { state_ = state; }
     void handleRead(Timestap receiveTime);
@@ -59,11 +67,13 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
     std::string name_;
     StateE state_; // FIXME, use atomic variable?
     std::unique_ptr<Channel> channel_;
+    std::unique_ptr<Socket> socket_;
     InetAddress peerAddr_;
     ConnectionCallback connectionCallback_;
     MessageCallback messageCallback_;
     CloseCallback closeCallback_;
     Buffer inputBuffer_;
+    Buffer outputBuffer_;
 };
 
 } // namespace hquin

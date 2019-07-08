@@ -28,8 +28,10 @@ class Channel {
     ~Channel();
 
     // update the event.
-    void enableReadable();
-    void enableWritable();
+    void enableReading();
+    void enableWriting();
+    void disableReading();
+    void disableWriting();
     void disableAll();
 
     void setReadCallback(const ReadEventCallback &cb) { readCallback_ = cb; }

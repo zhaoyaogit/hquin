@@ -25,13 +25,23 @@ Channel::Channel(EventLoop *eventloop, int fd)
 
 Channel::~Channel() { close(fd_); }
 
-void Channel::enableReadable() {
+void Channel::enableReading() {
     event_.events |= kReadEvent;
     update();
 }
 
-void Channel::enableWritable() {
+void Channel::enableWriting() {
     event_.events |= kWriteEvent;
+    update();
+}
+
+void Channel::disableReading() {
+    event_.events &= ~kReadEvent;
+    update();
+}
+
+void Channel::disableWriting() {
+    event_.events &= ~kWriteEvent;
     update();
 }
 

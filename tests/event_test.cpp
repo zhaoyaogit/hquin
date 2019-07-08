@@ -33,7 +33,7 @@ int main() {
     int timerfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);
     Channel channel(eventloop, timerfd);
     channel.setReadCallback(hello);
-    channel.enableReadable();
+    channel.enableReading();
 
     struct itimerspec howlong;
     memset(&howlong, 0, sizeof howlong);
@@ -42,11 +42,11 @@ int main() {
 
     Channel channel2(eventloop, STDOUT_FILENO);
     channel2.setReadCallback(hello);
-    channel2.enableReadable();
+    channel2.enableReading();
 
     Channel channel3(eventloop, STDIN_FILENO);
     channel3.setReadCallback(hello);
-    channel3.enableReadable();
+    channel3.enableReading();
 
     eventloop->loop();
 }

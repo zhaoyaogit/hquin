@@ -32,7 +32,7 @@ Acceptor::~Acceptor() { ::close(acceptSocket_.fd()); }
 void Acceptor::listen() {
     listenning_ = true;
     acceptSocket_.listen();
-    acceptChannel_.enableReadable();
+    acceptChannel_.enableReading();
 }
 
 // Callback function.

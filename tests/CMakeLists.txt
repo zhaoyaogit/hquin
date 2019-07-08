@@ -15,3 +15,6 @@ target_link_libraries(buffer_test hquin)
 
 add_executable(log_test log_test.cpp)
 target_link_libraries(log_test hquin)
+
+add_executable(tcpserver_send_test tcpserver_send_test.cpp)
+target_link_libraries(tcpserver_send_test hquin)
