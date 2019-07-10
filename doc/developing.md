@@ -5,6 +5,7 @@
 - [类应为单向依赖](#one_way_dep)
 - [关于类中的std::bind()](#bind)
 - [对类的封装的思考](#wrapper)
+- [TcpConnection 生命周期的坑](#shard_ptr)
 
 
 #### <span id = "one_way_dep"> 类应为单向依赖 </span>
@@ -41,3 +42,29 @@ int connfd = newConnAddr.acceptSockAddrInet(sockfd_);
 当时写的时候也是很蛋疼的，以listen InetAddress 构造了一个新的连接地址，这看起来很令人费解。
 
 后面将 bind 等socket函数从 `InetAddress` 类中删除，保留只与 `sockaddr_in` 结构信息相关的函数，而将 socket 系列函数封装进另外一个围绕sockfd封装其socket系列函数的类 `Socket`中。
+
+#### <span id = "shared_ptr"> TcpConnection 生命周期的坑 </span>
+因为存在各种回调函数和事件循环存在，TcpConnection 的生命周期不是固定的，于是使用 std::shared_from_this, 这样只要对 TcpConnection 对象还存在引用就不会被销毁。
+后来总是出现 coredump，通过排查引用计数
+```cpp
+// 内存上多出一个对 该对象的应用 use_count() 就会 + 1.
+// use_count() + 1 
+TcpConnectionPtr conn =
+    std::make_shared<TcpConnection>(eventloop_, connName, sockfd, peerAddr);
+// use_count() + 1
+connections_[connName] = conn;
+
+// use_count() + 1
+callback(); // 执行完后，自动 - 1
+
+// 函数执行完成（或者说内存回收），引用数 -1
+// use_count() - 1
+size_t n = connections_.erase(conn->name());
+
+// use_count() - 1, 实际上取消对该对象的引用是在 Epller::removeEvent() 中
+eventloop_->queueLoop(std::bind(&TcpConnection::connectDestroyed, conn));
+```
+关闭连接从 map 中删除减少一次，如果关闭函数执行完成，改对象就会被析构。
+但是代码的逻辑 处理可读函数在可读为0时会关闭此连接，而在事件循环中处理可写函数会继续执行，这样可写函数就会访问未知逻辑直接挂掉，所以这里推迟关闭函数的执行，使其在下一次事件循环中被调用。
+
+还有一个问题，如果关闭函数不执行的话，对象会一直存在不被析构，文件描述符就不会被回收。

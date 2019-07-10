@@ -29,10 +29,10 @@ void onMessage(const TcpConnectionPtr &conn, Buffer *buf, Timestap timestap) {
            buf->readableBytes(), conn->name().c_str());
     printf("[%s] receive data: %s\n", timestap.formatTimestap().c_str(),
            buf->stringifyReadable().c_str());
-    conn->send("I am a fun guy\n");
+    conn->send(buf->fetchReadble());
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
     int port = atoi(argv[1]);
 
     EventLoop loop(32);

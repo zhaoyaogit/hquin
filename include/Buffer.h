@@ -43,14 +43,23 @@ class Buffer {
     // @return result of read(2), @c errno is saved
     ssize_t readFd(int fd, int *savedErrno);
 
-    // stringify readable data.
-    std::string stringifyReadable();
-
     // change readIndex_
     void retrieve(size_t len) {
         assert(len <= readableBytes());
         readIndex_ += len;
     }
+
+    // reset index.
+    void retrieveAll() {
+        readIndex_ = 0;
+        writeIndex_ = 0;
+    }
+
+    // stringify readable data.
+    std::string stringifyReadable();
+
+    // stringify readble data and reset index.
+    std::string fetchReadble();
 
   private:
     std::vector<char> buffer_; // let STL to handle memory.

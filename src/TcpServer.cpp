@@ -8,7 +8,7 @@
 #include <EventLoop.h>
 #include <Acceptor.h>
 #include <TcpConnection.h>
-
+#include <Log.h>
 #include <sys/socket.h>
 
 #include <stdio.h>
@@ -45,13 +45,17 @@ void TcpServer::newConnection(int sockfd, const InetAddress &peerAddr) {
     connections_[connName] = conn;
     conn->setConnectionCallback(connectionCallback_);
     conn->setMessageCallback(messageCallback_);
+
     conn->setCloseCallback(std::bind(&TcpServer::removeConnection, this, _1));
     conn->connectEstablished();
 }
 
 void TcpServer::removeConnection(const TcpConnectionPtr &conn) {
     size_t n = connections_.erase(conn->name());
+    LOG_INFO << "TcpServer::removeConnection [" << name_ << "] - connection "
+             << conn->name();
     assert(n == 1);
+    eventloop_->queueLoop(std::bind(&TcpConnection::connectDestroyed, conn));
 }
 
 } // namespace hquin

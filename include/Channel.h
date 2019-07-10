@@ -60,6 +60,7 @@ class Channel {
     static const uint32_t kNonEvent;
     static const uint32_t kReadEvent;
     static const uint32_t kWriteEvent;
+    static const uint32_t kErrorEvent;
 
     EventLoop *eventloop_;
     int fd_;

@@ -17,6 +17,7 @@ namespace hquin {
 const uint32_t Channel::kNonEvent = 0;
 const uint32_t Channel::kReadEvent = EPOLLIN;
 const uint32_t Channel::kWriteEvent = EPOLLOUT;
+const uint32_t Channel::kErrorEvent = EPOLLERR | EPOLLHUP;
 
 Channel::Channel(EventLoop *eventloop, int fd)
     : eventloop_(eventloop), fd_(fd), event_{0} {
@@ -52,6 +53,10 @@ void Channel::disableAll() {
 
 // The channle's event corresponding callback function.
 void Channel::handleEvent(Timestap receiveTime) {
+    if (event_.events & kErrorEvent) {
+        closeCallback_(fd_);
+    }
+
     if (event_.events & kReadEvent)
         readCallback_(receiveTime);
 

@@ -18,11 +18,7 @@ EventLoop::EventLoop(size_t size)
 
 EventLoop::~EventLoop() {}
 
-// 1. classify event kinds.
-// 2. time event
-// 3. multiplexing IO
-// 4. do for each ready event
-// 5. callback();
+// loop the event
 void EventLoop::loop() {
     while (!stop_) {
         firedChannelList_.clear();
@@ -34,7 +30,18 @@ void EventLoop::loop() {
             if (!channel->isNonEvent())
                 channel->handleEvent(receiveTime);
         }
+
+        doPendingFunctors();
     }
+}
+
+void EventLoop::runInLoop(const Functor &func) {
+    // TODO: multiple thread process.
+    func();
+}
+
+void EventLoop::queueLoop(const Functor &func) {
+    pendingFunctors_.push_back(func);
 }
 
 void EventLoop::updateChannel(Channel *channel) {
@@ -43,6 +50,12 @@ void EventLoop::updateChannel(Channel *channel) {
 
 void EventLoop::removeChannel(Channel *channel) {
     epoller_->removeEvent(channel);
+}
+
+void EventLoop::doPendingFunctors() {
+    for (Functor func : pendingFunctors_)
+        func();
+    pendingFunctors_.clear();
 }
 
 } // namespace hquin

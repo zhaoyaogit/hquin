@@ -20,7 +20,8 @@ class EventLoop;
 class Channel;
 class Socket;
 
-// FIXME, use std::shared_from_this
+
+// establish a new tcp connection.
 class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   public:
     // Constructs a TcpConnection with a connected sockfd.
@@ -62,6 +63,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
     void handleWrite();
     void handleClose();
     void handleError();
+    void shutdownInLoop();
 
     EventLoop *eventloop_;
     std::string name_;

@@ -57,4 +57,10 @@ std::string Buffer::stringifyReadable() {
     return buf;
 }
 
+std::string Buffer::fetchReadble() {
+    std::string str = stringifyReadable();
+    retrieveAll();
+    return str;
+}
+
 } // namespace hquin
