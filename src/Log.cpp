@@ -247,12 +247,28 @@ void FileWriter::rollFile() {
 }
 
 // static variable, logger use only one file write;
-std::unique_ptr<FileWriter> Logger::writer_ = std::make_unique<FileWriter>();
+std::unique_ptr<Logger> logger = std::make_unique<Logger>();
 
-// write log info to file.
-Logger &Logger::operator==(LogLine &line) {
-    writer_->write(line);
-    return *this;
+Logger ::Logger()
+    : state_(kInit), thread_(&Logger::write, this), queue_(1024),
+      writer_(std::make_unique<FileWriter>()) {
+    state_ = kReady;
+}
+
+Logger::~Logger() { thread_.join(); }
+
+void Logger::add(LogLine &&line) { queue_.push(std::move(line)); }
+
+void Logger::write() {
+    while (!queue_.isEmpty()) {
+        LogLine line(UNKNOWN, "null", "null", 0);
+        queue_.pop(line);
+        writer_->write(line);
+    }
+}
+
+void Log::operator==(LogLine &line) {
+    logger->add(std::move(line));
 }
 
 } // namespace hquin

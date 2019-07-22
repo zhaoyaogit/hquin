@@ -10,6 +10,7 @@ set(CXX_FLAGS
 	-Wno-unused-parameter
 	-march=native
 	-fno-inline
+	-lpthread
 	# -MMD
 )
 string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CXX_FLAGS}")

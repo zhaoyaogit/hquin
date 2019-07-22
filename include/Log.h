@@ -9,19 +9,25 @@
 
 #pragma once
 
+#include <Queue.h>
+
 #include <string>
 #include <memory>
 #include <fstream>
+#include <thread>
 
 namespace hquin {
 
-enum LogLevel { INFO, WARN, ERROR };
+enum LogLevel { INFO, WARN, ERROR, UNKNOWN };
 
 // A line log info, usage is same as 'std::cout'.
 class LogLine {
   public:
     LogLine(LogLevel level, const char *file, const char *function,
             uint32_t line);
+    LogLine() = default;
+    LogLine(LogLine &&) = default;
+    LogLine &operator=(LogLine &&) = default;
     ~LogLine();
 
     // Add log info into buffer.
@@ -76,7 +82,7 @@ class LogLine {
     size_t bufferSize_;
     std::unique_ptr<char[]> heapBuffer_;
     //  perfer using stakc memory, reserve 8 bytes.
-    char stackBuffer_[1024 - sizeof(size_t) * 2 - sizeof(heapBuffer_) - 8];
+    char stackBuffer_[256 - sizeof(size_t) * 2 - sizeof(heapBuffer_) - 8];
 
     static const size_t kInitBufferSize;
 };
@@ -107,15 +113,28 @@ class FileWriter {
 
 class Logger {
   public:
-    Logger() {}
-    Logger &operator==(LogLine &line);
+    enum StateE { kInit, kReady, kShutdown };
+
+    Logger();
+    ~Logger();
+
+    void add(LogLine &&line);
+    void write();
 
   private:
-    // unique file writer as the logger。
-    static std::unique_ptr<FileWriter> writer_;
+    StateE state_;
+    std::thread thread_;
+    RingQueue<LogLine> queue_;
+
+    // unique file writer as the logger.
+    std::unique_ptr<FileWriter> writer_;
 };
 
-#define LOG(level) Logger() == LogLine(level, __FILE__, __FUNCTION__, __LINE__)
+struct Log {
+    void operator==(LogLine &line);
+};
+
+#define LOG(level) Log() == LogLine(level, __FILE__, __FUNCTION__, __LINE__)
 #define LOG_INFO LOG(INFO)
 #define LOG_WARN LOG(WARN)
 #define LOG_ERROR LOG(ERROR)
