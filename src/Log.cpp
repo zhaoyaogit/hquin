@@ -8,6 +8,8 @@
 #include <Log.h>
 #include <Timestap.h>
 
+#include <string.h> //strlen()
+
 namespace hquin {
 
 // LogLine implementation
@@ -32,8 +34,9 @@ const char *toStringLevel(LogLevel level) {
 LogLine::LogLine(LogLevel level, const char *file, const char *function,
                  uint32_t line)
     : usedBytes_(0), bufferSize_(kInitBufferSize) {
-    append(Literal(file));
-    append(Literal(function));
+    append(Timestap::now().formatTimestap());
+    append(file);
+    append(function);
     append(line);
     append(toStringLevel(level));
 }
@@ -53,6 +56,20 @@ template <typename T> void LogLine::append(T arg, uint8_t argType) {
     append(arg);
 }
 
+// @c string
+void LogLine::append(const char *arg) {
+    uint32_t len = strlen(arg) + 1; // end of '\0'
+    append(len, 7);
+
+    resizeIfNeeded(len);
+    std::copy(arg, arg + len, buffer());
+    *(buffer() - 1) = '\0'; // ofstream <<
+    usedBytes_ += len;
+}
+
+// std::string append
+void LogLine::append(const std::string &arg) { append(arg.c_str()); }
+
 // fetch one item log info to stream from buffer
 template <typename T>
 char *LogLine::fetch(std::ofstream &ofs, char *start, T *null) {
@@ -61,11 +78,21 @@ char *LogLine::fetch(std::ofstream &ofs, char *start, T *null) {
     return start + sizeof(T);
 }
 
-// separating of literal processing is due to Literal::literal() exist.
-char *LogLine::fetchLiteral(std::ofstream &ofs, char *start) {
-    Literal arg = *reinterpret_cast<Literal *>(start);
-    ofs << arg.literal();
-    return start + sizeof(Literal);
+// fetch and into ofstream
+char *LogLine::fetch(std::ofstream &ofs, char *start) {
+    uint32_t len = *reinterpret_cast<uint32_t *>(start);
+    start += sizeof(len);
+    ofs << start;
+    return start + len;
+}
+
+char *LogLine::fetch(char **start) {
+    char *p = *start;
+    p += sizeof(uint8_t);                            // type
+    uint32_t len = *reinterpret_cast<uint32_t *>(p); // string length
+    p += sizeof(uint32_t);
+    *start = p + len;
+    return p;
 }
 
 // format log line to ofstream.
@@ -73,20 +100,17 @@ void LogLine::stringify(std::ofstream &ofs) {
     char *b = begin();
     const char *const end = buffer();
 
-    // filename, function, line, log level is fixed log info.
-    Literal file = *reinterpret_cast<Literal *>(b);
-    b += sizeof(Literal);
-    Literal function = *reinterpret_cast<Literal *>(b);
-    b += sizeof(Literal);
-    uint32_t line = *reinterpret_cast<uint32_t *>(b);
+    // log head.
+    char *time = fetch(&b);                           // timestap
+    char *file = fetch(&b);                           // filename
+    char *function = fetch(&b);                       // function
+    uint32_t line = *reinterpret_cast<uint32_t *>(b); // line
     b += sizeof(uint32_t);
-    Literal level = *reinterpret_cast<Literal *>(b);
-    b += sizeof(Literal);
+    char *level = fetch(&b); // log level.
 
     // format fixed log info to stream.
-    ofs << '[' << Timestap::now().formatTimestap() << ']' << '['
-        << level.literal() << ']' << '[' << file.literal() << ':'
-        << function.literal() << ' ' << line << ']';
+    ofs << '[' << time << ']' << '[' << level << ']' << '[' << file << ':'
+        << function << ' ' << line << ']';
 
     // fetch nonfixed log info to stream.
     stringify(ofs, b, end);
@@ -123,7 +147,7 @@ void LogLine::stringify(std::ofstream &ofs, char *start,
         return stringify(ofs, fetch(ofs, start, static_cast<double *>(nullptr)),
                          end);
     case 7:
-        return stringify(ofs, fetchLiteral(ofs, start), end);
+        return stringify(ofs, fetch(ofs, start), end);
     }
 }
 
@@ -158,12 +182,12 @@ LogLine &LogLine::operator<<(double arg) {
 }
 
 LogLine &LogLine::operator<<(const char *arg) {
-    append(Literal(arg), 7);
+    append(arg);
     return *this;
 }
 
 LogLine &LogLine::operator<<(const std::string &arg) {
-    append(Literal(arg.c_str()), 7);
+    append(arg.c_str());
     return *this;
 }
 

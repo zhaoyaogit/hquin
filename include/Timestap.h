@@ -6,7 +6,6 @@
 
 #pragma once
 
-#include <chrono>
 #include <string>
 
 namespace hquin {
@@ -23,6 +22,8 @@ class Timestap {
     std::string formatTimestap() const;
 
     std::string stringifyTimestap() const;
+
+    uint64_t timestap() const { return timestap_; }
 
   private:
     uint64_t timestap_;

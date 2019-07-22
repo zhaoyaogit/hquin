@@ -24,33 +24,40 @@ class LogLine {
             uint32_t line);
     ~LogLine();
 
+    // Add log info into buffer.
+    // built-in form in buffer.
+    //  +---------+---------------+---------+---------------+
+    //  | type(1) | value(sizeof) | type(1) | value(sizeof) |
+    //  +---------+---------------+---------+---------------+
     LogLine &operator<<(char arg);
     LogLine &operator<<(int32_t arg);
     LogLine &operator<<(uint32_t arg);
     LogLine &operator<<(int64_t arg);
     LogLine &operator<<(uint64_t arg);
     LogLine &operator<<(double arg);
+
+    // @c string or std::string form in buffer.
+    //  +---------+--------+-------------+---------+--------+-------------+
+    //  | type(1) | len(4) | str(strlen) | type(1) | len(4) | str(strlen) |
+    //  +---------+--------+-------------+---------+--------+-------------+
     LogLine &operator<<(const char *arg);
     LogLine &operator<<(const std::string &arg);
 
     void stringify(std::ofstream &ofs);
     void stringify(std::ofstream &ofs, char *start, const char *const end);
 
-    // Literal is used to wrap 'const char *' that
-    // could get the @c string by address.
-    struct Literal {
-        explicit Literal(const char *s) : str(s) {}
-        const char *literal() { return str; }
-        const char *str;
-    };
-
     // append log info to buffer.
     template <typename T> void append(T arg);
     template <typename T> void append(T arg, uint8_t argType);
+    void append(const char *arg);        // append @c string.
+    void append(const std::string &arg); // append std::string.
 
     // fetch log info to ofstream from buffer.
     template <typename T> char *fetch(std::ofstream &ofs, char *start, T *null);
-    char *fetchLiteral(std::ofstream &ofs, char *start);
+    char *fetch(std::ofstream &ofs, char *start);
+
+    // fetch a log info address.
+    char *fetch(char **start);
 
   private:
     // get first unused bytes address.
