@@ -29,6 +29,8 @@ class TcpServer {
 
     void start();
 
+    const std::string name() const { return name_; }
+
     void setConnectionCallback(const ConnectionCallback &cb) {
         connectionCallback_ = cb;
     }
