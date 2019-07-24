@@ -9,6 +9,7 @@
 #include <Timestap.h>
 
 #include <string.h> //strlen()
+#include <atomic>
 
 namespace hquin {
 
@@ -110,7 +111,7 @@ void LogLine::stringify(std::ofstream &ofs) {
 
     // format fixed log info to stream.
     ofs << '[' << time << ']' << '[' << level << ']' << '[' << file << ':'
-        << function << ' ' << line << ']';
+        << function << "(): " << line << "] ";
 
     // fetch nonfixed log info to stream.
     stringify(ofs, b, end);
@@ -248,6 +249,7 @@ void FileWriter::rollFile() {
 
 // static variable, logger use only one file write;
 std::unique_ptr<Logger> logger = std::make_unique<Logger>();
+std::atomic<Logger*> log(logger.get());
 
 Logger ::Logger()
     : state_(kInit), thread_(&Logger::write, this), queue_(1024),
@@ -255,20 +257,28 @@ Logger ::Logger()
     state_ = kReady;
 }
 
-Logger::~Logger() { thread_.join(); }
+Logger::~Logger() {
+    state_ = kShutdown;
+    thread_.join();
+}
 
 void Logger::add(LogLine &&line) { queue_.push(std::move(line)); }
 
 void Logger::write() {
-    while (!queue_.isEmpty()) {
-        LogLine line(UNKNOWN, "null", "null", 0);
-        queue_.pop(line);
-        writer_->write(line);
+    while (state_ == kReady) {
+        if (!queue_.isEmpty()) {
+            LogLine line(UNKNOWN, "null", "null", 0);
+            queue_.pop(line);
+            writer_->write(line);
+        } else {
+            // reduce CPU use.
+            std::this_thread::sleep_for(std::chrono::microseconds(200));
+        }
     }
 }
 
 void Log::operator==(LogLine &line) {
-    logger->add(std::move(line));
+    log.load(std::memory_order_acquire)->add(std::move(line));
 }
 
 } // namespace hquin

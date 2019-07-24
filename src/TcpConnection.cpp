@@ -23,8 +23,8 @@ TcpConnection::TcpConnection(EventLoop *loop, std::string name, int sockfd,
     : eventloop_(loop), name_(name), state_(kConnecting),
       channel_(std::make_unique<Channel>(eventloop_, sockfd)),
       socket_(std::make_unique<Socket>(sockfd)), peerAddr_(peerAddr) {
-    LOG_INFO << "TcpConnection ctor " << peerAddr_.stringifyHost()
-             << ", fd = " << sockfd;
+    LOG_INFO << "TcpConnection Ctor " << peerAddr_.stringifyHost()
+             << ", fd = " << sockfd << " - new Tcp Connection";
     channel_->setReadCallback(std::bind(&TcpConnection::handleRead, this, _1));
     channel_->setWriteCallback(std::bind(&TcpConnection::handleWrite, this));
     channel_->setCloseCallback(std::bind(&TcpConnection::handleClose, this));
@@ -85,7 +85,6 @@ void TcpConnection::shutdownInLoop() {
 void TcpConnection::connectDestroyed() {
     setState(kDisconnected);
     channel_->disableAll();
-    connectionCallback_(shared_from_this());
     eventloop_->removeChannel(channel_.get());
 }
 

@@ -24,20 +24,24 @@ HTTPServer::HTTPServer(EventLoop *loop, InetAddress address)
 }
 
 void HTTPServer::start() {
-    LOG_WARN << "HttpServer[" << server_.name() << "]";
+    LOG_WARN << "HTTPServer[" << server_.name() << "]";
     server_.start();
 }
 
-void HTTPServer::onConnection(const TcpConnectionPtr &conn) {}
+void HTTPServer::onConnection(const TcpConnectionPtr &conn) {
+    LOG_WARN << conn->name() << " - new HTTP request.";
+}
 
 void HTTPServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf,
                            Timestap receiveTime) {
     HTTPRequest req(receiveTime);
-    req.handle(buf->stringifyReadable());
+    // TcpConnection buffer must update readable bytes.
+    req.handle(buf->fetchReadble());
     onRequest(conn, req);
 }
 
-void HTTPServer::onRequest(const TcpConnectionPtr &conn, const HTTPRequest &req) {
+void HTTPServer::onRequest(const TcpConnectionPtr &conn,
+                           const HTTPRequest &req) {
     const std::string &connection = req.getHeader("Connection");
     bool close =
         connection == "close" ||
