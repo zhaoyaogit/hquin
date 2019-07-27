@@ -8,10 +8,14 @@
 
 #pragma once
 
+#include <sys/eventfd.h>
+
 #include <functional>
 #include <memory>
 #include <map>
 #include <vector>
+#include <thread>
+#include <mutex>
 
 namespace hquin {
 
@@ -35,6 +39,16 @@ class EventLoop {
     // if an event takes too long, it will seriously affect other ready event.
     void loop();
 
+    // one loop one thread.
+    void assertInLoopThread();
+
+    // loop must run in one thread.
+    void abortNotInLoopThread();
+
+    bool isInLoopThread() const {
+        return threadId_ == std::this_thread::get_id();
+    }
+
     // run callback immediately in the loop thread.
     void runInLoop(const Functor &func);
 
@@ -43,7 +57,7 @@ class EventLoop {
     // keep functors lifetime is same.
     // eg. if a close callback exec before read, the read callback must generate
     //   a error and dump.
-    void queueLoop(const Functor &func);
+    void queueInLoop(const Functor &func);
 
     // execute pending functions in next event loop.
     void doPendingFunctors();
@@ -52,12 +66,22 @@ class EventLoop {
     void updateChannel(Channel *channel);
     void removeChannel(Channel *channel);
 
+    // handle wake up eventfd
+    void handleRead();
+    void wakeup();
+
   private:
-    bool stop_;
-    size_t size_; // max event num in this event loop.
+    bool stop_;                   // atomic
+    bool looping_;                // atomic
+    bool callingPendingFunctors_; // atomic
+    size_t size_;                 // max event num in this event loop.
+    int wakeupFd_;
+    std::unique_ptr<Channel> wakeupChannel_;
     std::unique_ptr<Epoller> epoller_;
     std::vector<Channel *> firedChannelList_;
     std::vector<Functor> pendingFunctors_;
+    std::thread::id threadId_;
+    std::mutex mutex_;
 };
 
 } // namespace hquin

@@ -62,7 +62,7 @@ callback(); // 执行完后，自动 - 1
 size_t n = connections_.erase(conn->name());
 
 // use_count() - 1, 实际上取消对该对象的引用是在 Epller::removeEvent() 中
-eventloop_->queueLoop(std::bind(&TcpConnection::connectDestroyed, conn));
+eventloop_->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn));
 ```
 关闭连接从 map 中删除减少一次，如果关闭函数执行完成，改对象就会被析构。
 但是代码的逻辑 处理可读函数在可读为0时会关闭此连接，而在事件循环中处理可写函数会继续执行，这样可写函数就会访问未知逻辑直接挂掉，所以这里推迟关闭函数的执行，使其在下一次事件循环中被调用。

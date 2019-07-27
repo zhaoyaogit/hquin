@@ -55,7 +55,7 @@ void TcpServer::removeConnection(const TcpConnectionPtr &conn) {
     LOG_INFO << "TcpServer::removeConnection [" << name_ << "] - connection "
              << conn->name();
     assert(n == 1);
-    eventloop_->queueLoop(std::bind(&TcpConnection::connectDestroyed, conn));
+    eventloop_->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn));
 }
 
 } // namespace hquin

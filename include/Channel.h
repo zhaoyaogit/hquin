@@ -44,6 +44,8 @@ class Channel {
 
     int fd() const { return fd_; }
 
+    EventLoop *ownLoop() const { return eventloop_; }
+
     void setEvent(const struct epoll_event &event) { event_ = event; }
     struct epoll_event getEvent() const {
         return event_;
