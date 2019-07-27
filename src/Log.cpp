@@ -10,6 +10,7 @@
 
 #include <string.h> //strlen()
 #include <atomic>
+#include <thread>
 
 namespace hquin {
 
@@ -36,6 +37,7 @@ LogLine::LogLine(LogLevel level, const char *file, const char *function,
                  uint32_t line)
     : usedBytes_(0), bufferSize_(kInitBufferSize) {
     append(Timestap::now().formatTimestap());
+    append(std::this_thread::get_id());
     append(file);
     append(function);
     append(line);
@@ -102,7 +104,10 @@ void LogLine::stringify(std::ofstream &ofs) {
     const char *const end = buffer();
 
     // log head.
-    char *time = fetch(&b);                           // timestap
+    char *time = fetch(&b); // timestap
+    std::thread::id threadId =
+        *reinterpret_cast<std::thread::id *>(b); // thread
+    b += sizeof(std::thread::id);
     char *file = fetch(&b);                           // filename
     char *function = fetch(&b);                       // function
     uint32_t line = *reinterpret_cast<uint32_t *>(b); // line
@@ -110,8 +115,8 @@ void LogLine::stringify(std::ofstream &ofs) {
     char *level = fetch(&b); // log level.
 
     // format fixed log info to stream.
-    ofs << '[' << time << ']' << '[' << level << ']' << '[' << file << ':'
-        << function << "(): " << line << "] ";
+    ofs << '[' << time << "][" << threadId << "][" << level << ']' << '['
+        << file << ':' << function << "(): " << line << "] ";
 
     // fetch nonfixed log info to stream.
     stringify(ofs, b, end);
@@ -249,7 +254,7 @@ void FileWriter::rollFile() {
 
 // static variable, logger use only one file write;
 std::unique_ptr<Logger> logger = std::make_unique<Logger>();
-std::atomic<Logger*> log(logger.get());
+std::atomic<Logger *> log(logger.get());
 
 Logger ::Logger()
     : state_(kInit), thread_(&Logger::write, this), queue_(1024),
