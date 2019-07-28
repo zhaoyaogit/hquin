@@ -17,7 +17,7 @@ namespace hquin {
 // LogLine implementation
 
 // default buffer size
-const size_t LogLine::kInitBufferSize = 1024;
+const size_t LogLine::kInitBufferSize = 256;
 
 const char *toStringLevel(LogLevel level) {
     switch (level) {
@@ -277,7 +277,7 @@ void Logger::write() {
             writer_->write(line);
         } else {
             // reduce CPU use.
-            std::this_thread::sleep_for(std::chrono::microseconds(200));
+            std::this_thread::sleep_for(std::chrono::microseconds(100));
         }
     }
 }

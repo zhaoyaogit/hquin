@@ -65,7 +65,11 @@ void HTTPRequest::handle(const std::string &request) {
     std::string::size_type begin;
     std::string::size_type end;
 
-    // parse header line
+    // parse request header only.
+    if (request.find("\r\n") == std::string::npos)
+        return;
+
+    // parse request line
     end = request.find(' '); // method
     setMethod(request.data(), request.data() + end);
 
@@ -77,7 +81,7 @@ void HTTPRequest::handle(const std::string &request) {
     end = request.find('\r', begin); // version
     setVersion(request.data() + begin, request.data() + end);
 
-    // header context
+    // header
     while (1) {
         begin = end + 2; // \r\n
 
