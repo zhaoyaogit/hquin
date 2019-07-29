@@ -9,7 +9,6 @@
 #include <Timestap.h>
 
 #include <string.h> //strlen()
-#include <atomic>
 #include <thread>
 
 namespace hquin {
@@ -115,13 +114,12 @@ void LogLine::stringify(std::ofstream &ofs) {
     char *level = fetch(&b); // log level.
 
     // format fixed log info to stream.
-    ofs << '[' << time << "][" << threadId << "][" << level << ']' << '['
-        << file << ':' << function << "(): " << line << "] ";
+    ofs << '[' << time << "][" << level << "][" << threadId << "] ";
 
     // fetch nonfixed log info to stream.
     stringify(ofs, b, end);
 
-    ofs << std::endl;
+    ofs << "  - " << file << ':' << function << "(): " << line << std::endl;
 }
 
 void LogLine::stringify(std::ofstream &ofs, char *start,
@@ -259,7 +257,7 @@ std::atomic<Logger *> log(logger.get());
 Logger ::Logger()
     : state_(kInit), thread_(&Logger::write, this), queue_(1024),
       writer_(std::make_unique<FileWriter>()) {
-    state_ = kReady;
+    state_.store(kReady, std::memory_order_release);
 }
 
 Logger::~Logger() {
@@ -270,7 +268,10 @@ Logger::~Logger() {
 void Logger::add(LogLine &&line) { queue_.push(std::move(line)); }
 
 void Logger::write() {
-    while (state_ == kReady) {
+    while (state_.load(std::memory_order_acquire) == kInit)
+        std::this_thread::sleep_for(std::chrono::microseconds(50));
+
+    while (state_.load() == kReady) {
         if (!queue_.isEmpty()) {
             LogLine line(UNKNOWN, "null", "null", 0);
             queue_.pop(line);

@@ -15,6 +15,7 @@
 #include <memory>
 #include <fstream>
 #include <thread>
+#include <atomic>
 
 namespace hquin {
 
@@ -122,7 +123,7 @@ class Logger {
     void write();
 
   private:
-    StateE state_;
+    std::atomic<StateE> state_;
     std::thread thread_;
     RingQueue<LogLine> queue_;
 
