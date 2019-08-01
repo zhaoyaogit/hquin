@@ -11,6 +11,8 @@
 
 #include <unistd.h>
 
+#include <assert.h>
+
 namespace hquin {
 
 // create a epoll instance.
@@ -42,9 +44,9 @@ void Epoller::updateEvent(Channel *channel) {
 void Epoller::removeEvent(Channel *channel) {
     struct epoll_event event = channel->getEvent();
 
+    // remove a tcp connection fd in epoll event.
     size_t n = channelMap_.erase(channel->fd());
-
-    LOG_WARN << "earse num: " << n;
+    assert(n == 1);
 
     // FIXME, syscall error handle
     ::epoll_ctl(epfd_, EPOLL_CTL_DEL, channel->fd(), &event);
@@ -54,14 +56,6 @@ void Epoller::fillFiredEvents(int numevents,
                               std::vector<Channel *> &firedChannelList) {
     if (numevents <= 0)
         return;
-
-    // for (auto m:channelMap_)
-    // LOG_WARN << "channel map fd " << m.first;
-
-    //     for (int i = 0; i < numevents; ++i) {
-    //         struct epoll_event *event = events_.get() + i;
-    //         LOG_WARN << "event fd " << event->data.fd;
-    //     }
 
     for (int i = 0; i < numevents; ++i) {
         struct epoll_event event = events_[i];
@@ -80,7 +74,7 @@ Timestap Epoller::epoll(EventLoop *eventloop,
                         std::vector<Channel *> &firedChannelList) {
     // call epoll_wait(2) with block.
     int numevents = ::epoll_wait(epfd_, events_.data(),
-                                 static_cast<int>(events_.size()), -1);
+                                 static_cast<int>(events_.size()), 10000);
     Timestap receiveTime = Timestap::now();
 
     fillFiredEvents(numevents, firedChannelList);

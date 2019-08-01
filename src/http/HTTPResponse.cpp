@@ -10,8 +10,9 @@ namespace hquin {
 namespace http {
 
 void HTTPResponse::appendToBuffer(Buffer *buf) const {
-    buf->append("HTTP/1.1");              // http version
+    buf->append("HTTP/1.1 ");              // http version
     buf->append(std::to_string(status_)); // status code
+    buf->append(" ");
     buf->append(message_);                // message
     buf->append("\r\n");
 
