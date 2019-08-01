@@ -7,6 +7,7 @@
 #include <Channel.h>
 #include <Epoller.h>
 #include <EventLoop.h>
+#include <Log.h>
 
 #include <unistd.h>
 
@@ -14,9 +15,7 @@ namespace hquin {
 
 // create a epoll instance.
 // epoll_create(size), size just greater than 0 for kernel.
-Epoller::Epoller()
-    : epfd_(::epoll_create(1024)),
-      events_(std::make_unique<struct epoll_event>()) {
+Epoller::Epoller() : epfd_(::epoll_create(1024)), events_(kInitEventListSize) {
     if (epfd_ == -1) {
         // throw error
     }
@@ -43,7 +42,9 @@ void Epoller::updateEvent(Channel *channel) {
 void Epoller::removeEvent(Channel *channel) {
     struct epoll_event event = channel->getEvent();
 
-    channelMap_.erase(channel->fd());
+    size_t n = channelMap_.erase(channel->fd());
+
+    LOG_WARN << "earse num: " << n;
 
     // FIXME, syscall error handle
     ::epoll_ctl(epfd_, EPOLL_CTL_DEL, channel->fd(), &event);
@@ -54,14 +55,22 @@ void Epoller::fillFiredEvents(int numevents,
     if (numevents <= 0)
         return;
 
+    // for (auto m:channelMap_)
+    // LOG_WARN << "channel map fd " << m.first;
+
+    //     for (int i = 0; i < numevents; ++i) {
+    //         struct epoll_event *event = events_.get() + i;
+    //         LOG_WARN << "event fd " << event->data.fd;
+    //     }
+
     for (int i = 0; i < numevents; ++i) {
-        struct epoll_event *event = events_.get() + i;
+        struct epoll_event event = events_[i];
 
         std::map<int, Channel *>::const_iterator ch =
-            channelMap_.find(event->data.fd);
+            channelMap_.find(event.data.fd);
         if (ch != channelMap_.end()) {
             Channel *channel = ch->second;
-            channel->setEvent(*event);
+            channel->setEvent(event);
             firedChannelList.push_back(channel);
         }
     }
@@ -70,7 +79,8 @@ void Epoller::fillFiredEvents(int numevents,
 Timestap Epoller::epoll(EventLoop *eventloop,
                         std::vector<Channel *> &firedChannelList) {
     // call epoll_wait(2) with block.
-    int numevents = ::epoll_wait(epfd_, events_.get(), eventloop->size(), -1);
+    int numevents = ::epoll_wait(epfd_, events_.data(),
+                                 static_cast<int>(events_.size()), -1);
     Timestap receiveTime = Timestap::now();
 
     fillFiredEvents(numevents, firedChannelList);

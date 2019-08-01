@@ -11,7 +11,6 @@
 #include <sys/epoll.h>
 
 #include <map>
-#include <memory>
 #include <vector>
 
 namespace hquin {
@@ -41,8 +40,10 @@ class Epoller {
                    std::vector<Channel *> &firedChannelList);
 
   private:
+    static const int kInitEventListSize = 16;
+
     int epfd_;
-    std::unique_ptr<struct epoll_event> events_;
+    std::vector<struct epoll_event> events_;
     std::map<int, Channel *> channelMap_;
 };
 
