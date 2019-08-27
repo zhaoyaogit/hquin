@@ -9,7 +9,7 @@
 namespace hquin {
 namespace http {
 
-HTTPRequest::HTTPRequest(Timestap receiveTime)
+HTTPRequest::HTTPRequest(Timestamp receiveTime)
     : receiveTime_(receiveTime), method_(kInvalid), version_(kUnknown) {}
 
 HTTPRequest::~HTTPRequest() {}

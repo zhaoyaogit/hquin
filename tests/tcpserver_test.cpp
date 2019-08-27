@@ -24,10 +24,10 @@ void onConnection(const TcpConnectionPtr &conn) {
     }
 }
 
-void onMessage(const TcpConnectionPtr &conn, Buffer *buf, Timestap timestap) {
+void onMessage(const TcpConnectionPtr &conn, Buffer *buf, Timestamp timestamp) {
     printf("onMessage(): received %zd bytes from connection [%s]\n",
            buf->readableBytes(), conn->name().c_str());
-    printf("[%s] receive data: %s\n", timestap.formatTimestap().c_str(),
+    printf("[%s] receive data: %s\n", timestamp.formatTimestamp().c_str(),
            buf->stringifyReadable().c_str());
 }
 

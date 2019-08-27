@@ -3,141 +3,215 @@
 // Date:    2019/07/03 20:31:34
 // Desc:
 //   A simple logger. only support log to file.
-//   File format default is file.x.log, x is roll file number.
-//   Log format like this:
-//    [2019/07/04 15:42:26.221773][ERROR][log_test.cpp:main 14]LOG_ERROR
+//   File format default is log20190805_x.log, x is roll file number.
 
 #pragma once
 
-#include <Queue.h>
-
 #include <string>
 #include <memory>
-#include <fstream>
+#include <functional>
+#include <vector>
+#include <mutex>
 #include <thread>
-#include <atomic>
+
+#include <sys/epoll.h>
+#include <sys/eventfd.h>
+
+#include <string.h>
+#include <stdio.h>
 
 namespace hquin {
 
-enum LogLevel { INFO, WARN, ERROR, UNKNOWN };
+// Fixed buffer, is same as std::array but its memory alloced at heap.
+class FixedBuffer {
+  public:
+    explicit FixedBuffer(size_t size);
+
+    size_t size() const { return usedBytes_; }
+    size_t capacity() const { return bufferSize_; }
+
+    bool isEmpty() const { return usedBytes_ == 0; }
+    bool isFull() const { return usedBytes_ == bufferSize_; }
+
+    // used bytes reset 0.
+    void reset();
+
+    void bzero();
+
+    // buffer begin address.
+    char *begin() { return &buffer_.get()[0]; }
+
+    // buffer begin append address.
+    char *buffer() { return &buffer_.get()[usedBytes_]; }
+
+    // append data to buffer.
+    void append(const char *str, size_t len); // append @c string.
+    void append(const char *str) { append(str, strlen(str)); }
+
+  private:
+    size_t usedBytes_;
+    size_t bufferSize_;
+    std::unique_ptr<char[]> buffer_;
+};
+
+template <size_t N> class SmartBuffer {
+  public:
+    SmartBuffer();
+
+    size_t size() const { return usedBytes_; }
+    size_t capacity() const { return bufferSize_; }
+
+    char *begin() { return heapBuffer_ ? heapBuffer_->begin() : stackBuffer_; }
+    char *buffer() { // get first unused bytes address.
+        return heapBuffer_ ? heapBuffer_->buffer() : &stackBuffer_[usedBytes_];
+    }
+
+    void append(const char *str, size_t len); // append @c string.
+    void append(const char *str) { append(str, strlen(str)); }
+
+  private:
+    void resizeIfNeeded(size_t addBytes);
+
+    size_t usedBytes_;
+    size_t bufferSize_;
+    std::unique_ptr<FixedBuffer> heapBuffer_;
+    char stackBuffer_[N];
+};
+
+class Logger;
+
+enum LogLevel { kTrace, kDebug, kInfo, kWarn, kError, kFatal };
 
 // A line log info, usage is same as 'std::cout'.
+// Log format in memory.
+//  +------+-------+-----------+------+------+----------+------+
+//  | time | level | thread id | logs | file | function | line |
+//  +------+-------+-----------+------+------+----------+------+
 class LogLine {
   public:
-    LogLine(LogLevel level, const char *file, const char *function,
-            uint32_t line);
-    LogLine() = default;
-    LogLine(LogLine &&) = default;
-    LogLine &operator=(LogLine &&) = default;
+    LogLine(Logger *logger, LogLevel level, const char *file,
+            const char *function, uint32_t line);
     ~LogLine();
 
-    // Add log info into buffer.
-    // built-in form in buffer.
-    //  +---------+---------------+---------+---------------+
-    //  | type(1) | value(sizeof) | type(1) | value(sizeof) |
-    //  +---------+---------------+---------+---------------+
+    // operator various argument of logs type.
+    LogLine &operator<<(bool arg);
     LogLine &operator<<(char arg);
     LogLine &operator<<(int32_t arg);
     LogLine &operator<<(uint32_t arg);
     LogLine &operator<<(int64_t arg);
     LogLine &operator<<(uint64_t arg);
     LogLine &operator<<(double arg);
-
-    // @c string or std::string form in buffer.
-    //  +---------+--------+-------------+---------+--------+-------------+
-    //  | type(1) | len(4) | str(strlen) | type(1) | len(4) | str(strlen) |
-    //  +---------+--------+-------------+---------+--------+-------------+
     LogLine &operator<<(const char *arg);
     LogLine &operator<<(const std::string &arg);
 
-    void stringify(std::ofstream &ofs);
-    void stringify(std::ofstream &ofs, char *start, const char *const end);
-
-    // append log info to buffer.
-    template <typename T> void append(T arg);
-    template <typename T> void append(T arg, uint8_t argType);
-    void append(const char *arg);        // append @c string.
-    void append(const std::string &arg); // append std::string.
-
-    // fetch log info to ofstream from buffer.
-    template <typename T> char *fetch(std::ofstream &ofs, char *start, T *null);
-    char *fetch(std::ofstream &ofs, char *start);
-
-    // fetch a log info address.
-    char *fetch(char **start);
+    // stringify log level.
+    const char *stringifyLevel(LogLevel level);
 
   private:
-    // get first unused bytes address.
-    char *buffer() {
-        return heapBuffer_ ? &(heapBuffer_.get())[usedBytes_]
-                           : &stackBuffer_[usedBytes_];
-    }
-
-    // buffer begin address.
-    char *begin() { return heapBuffer_ ? heapBuffer_.get() : stackBuffer_; }
-
-    // buffer is char[] type, we need resize by ourself.
-    void resizeIfNeeded(size_t addBytes);
-
-    size_t usedBytes_;
-    size_t bufferSize_;
-    std::unique_ptr<char[]> heapBuffer_;
-    //  perfer using stakc memory, reserve 8 bytes.
-    char stackBuffer_[256 - sizeof(size_t) * 2 - sizeof(heapBuffer_) - 8];
-
-    static const size_t kInitBufferSize;
+    Logger *logger_;
+    LogLevel level_;
+    const char *file_;
+    const char *function_;
+    uint32_t line_;
+    SmartBuffer<256> buffer_;
 };
 
-// write log info to file.
-class FileWriter {
+// Write logs into file or stdout.
+class LogFile {
   public:
-    FileWriter();
-    FileWriter(std::string fileName, uint32_t rollFileBytes);
+    enum State { kStart, kEnd };
 
-    // write LogLine to fstream.
-    void write(LogLine &line);
+    // Logs to stdout.
+    LogFile();
 
-    static FileWriter &uniqueWriter();
+    // Logs to file.
+    LogFile(const char *file, uint32_t rollSize);
+
+    ~LogFile();
+
+    // append bytes to FILE*
+    void append(const char *str, size_t len) { doAppend_(str, len); }
+
+    // append "len" bytes to a buffer.
+    void appendToBuffer(const char *str, size_t len);
+
+    // append "len" bytes to a stdout.
+    void appendToStdout(const char *str, size_t len);
+
+    // flush buffer to FILE*
+    void flush() { doFlush_(); }
+
+    // presist to file or stdout.
+    void presist();
+
+    static const size_t kBufferSize;
+    static const uint32_t kMBytes;
+    static const uint32_t kRollSize;
+    static const uint32_t kInitBufferNumber;
 
   private:
-    void rollFile(); // internal use, log new file.
+    void rollFile();
 
-    uint32_t rollFileBytes_;
-    uint32_t rollFileNum_;
-    uint32_t writenBytes_;
-    std::string filename_;
-    std::unique_ptr<std::ofstream> ofs_;
+    // write "len" bytes to file.
+    ssize_t write(const char *str, size_t len);
 
-    static const uint32_t kRollFileBytes;
-    static const std::string kFileName; // default file name.
+    // consume producer buffer.
+    void consume();
+
+    void doPresist();
+
+    FILE *fp_;
+    uint32_t rollNumber_;
+    const uint32_t rollBytes_;
+    uint32_t writtenBytes_;
+    std::string basename_;
+    FixedBuffer produceBuffer_;
+    std::vector<FixedBuffer> consumeBuffers_;
+    std::thread thread_;
+    std::mutex mutex_;
+    State state_; // FIXED ME, atomic.
+    int epollfd_;
+    int eventfd_;
+    std::function<void(const char *, size_t)> doAppend_;
+    std::function<void()> doFlush_;
 };
 
 class Logger {
   public:
-    enum StateE { kInit, kReady, kShutdown };
-
     Logger();
-    ~Logger();
+    Logger(const char *file, uint32_t rollSize);
 
-    void add(LogLine &&line);
-    void write();
+    void append(const char *str, size_t len);
+    void append(const char *str) { append(str, strlen(str)); }
+
+    void flush();
 
   private:
-    std::atomic<StateE> state_;
-    std::thread thread_;
-    RingQueue<LogLine> queue_;
-
-    // unique file writer as the logger.
-    std::unique_ptr<FileWriter> writer_;
+    LogFile logFile_;
+    std::mutex mutex_;
 };
 
-struct Log {
-    void operator==(LogLine &line);
+struct LogConfig {
+    LogConfig() : rollsize(0) {}
+
+    std::string filename;
+    size_t rollsize;
 };
 
-#define LOG(level) Log() == LogLine(level, __FILE__, __FUNCTION__, __LINE__)
-#define LOG_INFO LOG(INFO)
-#define LOG_WARN LOG(WARN)
-#define LOG_ERROR LOG(ERROR)
+LogConfig readConfig();
+
+Logger *logger();
+LogLevel loglevel();
 
 } // namespace hquin
+
+#define LOG(level)                                                             \
+    if (hquin::loglevel() <= level)                                            \
+    LogLine(hquin::logger(), level, __FILE__, __FUNCTION__, __LINE__)
+
+#define LOG_TRACE LOG(hquin::kTrace)
+#define LOG_DEBUG LOG(hquin::kDebug)
+#define LOG_INFO LOG(hquin::kInfo)
+#define LOG_WARN LOG(hquin::kWarn)
+#define LOG_ERROR LOG(hquin::kError)
+#define LOG_FATAL LOG(hquin::kFatal)

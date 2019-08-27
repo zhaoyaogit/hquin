@@ -5,7 +5,7 @@
 //   logger test.
 
 #include <Log.h>
-#include <Timestap.h>
+#include <Timestamp.h>
 
 #include <iostream>
 
@@ -26,20 +26,20 @@ int main() {
     const char *cstr = "hello @c string";
     std::string str = "hello std::string";
 
-    uint64_t longstart = Timestap::now().timestap();
+    uint64_t longstart = Timestamp::now().timestamp();
     for (uint32_t i = 0; i < 100000; ++i)
         LOG_INFO << ch << ' ' << i32 << ' ' << u32 << ' ' << i64 << ' ' << u64
                  << ' ' << df << cstr << str << ' ' << i;
-    uint64_t longend = Timestap::now().timestap();
+    uint64_t longend = Timestamp::now().timestamp();
 
     std::cout << "total time: " << longend - longstart
               << ", avg time: " << (longend - longstart) * kSecondConv / 100000
               << '\n';
 
-    uint64_t shortstart = Timestap::now().timestap();
+    uint64_t shortstart = Timestamp::now().timestamp();
     for (uint32_t i = 0; i < 100000; ++i)
         LOG_INFO << ch;
-    uint64_t shortend = Timestap::now().timestap();
+    uint64_t shortend = Timestamp::now().timestamp();
 
     std::cout << "total time: " << shortend - shortstart << "us , avg time: "
               << (shortend - shortstart) * kSecondConv / 100000 << '\n';

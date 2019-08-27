@@ -88,7 +88,7 @@ void TcpConnection::connectDestroyed() {
     eventloop_->removeChannel(channel_.get());
 }
 
-void TcpConnection::handleRead(Timestap receiveTime) {
+void TcpConnection::handleRead(Timestamp receiveTime) {
     int saveErrno = 0;
     const int n = inputBuffer_.readFd(channel_->fd(), &saveErrno);
     if (n > 0) {

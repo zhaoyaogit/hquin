@@ -59,7 +59,7 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
     enum StateE { kConnecting, kConnected, kDisconnecting, kDisconnected };
 
     void setState(StateE state) { state_ = state; }
-    void handleRead(Timestap receiveTime);
+    void handleRead(Timestamp receiveTime);
     void handleWrite();
     void handleClose();
     void handleError();

@@ -9,7 +9,7 @@
 #include <EventLoop.h>
 #include <Channel.h>
 #include <Epoller.h>
-#include <Timestap.h>
+#include <Timestamp.h>
 #include <Log.h>
 
 #include <unistd.h>
@@ -60,8 +60,8 @@ void EventLoop::loop() {
     while (!stop_) {
         firedChannelList_.clear();
 
-        // record the timestap of new connection arrived.
-        Timestap receiveTime = epoller_->epoll(this, firedChannelList_);
+        // record the timestamp of new connection arrived.
+        Timestamp receiveTime = epoller_->epoll(this, firedChannelList_);
 
         for (Channel *channel : firedChannelList_) {
             if (!channel->isNonEvent())

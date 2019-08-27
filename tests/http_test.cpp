@@ -33,7 +33,7 @@ void onRequest(const HTTPRequest &req, HTTPResponse *resp) {
         resp->setStatusMessage("OK");
         resp->setContentType("text/html");
         resp->addHeader("Server", "hquin");
-        std::string now = Timestap::now().formatTimestap();
+        std::string now = Timestamp::now().formatTimestamp();
         resp->setBody("<html><head><title>This is title</title></head>"
                       "<body><h1>Hello</h1>Now is " +
                       now + "</body></html>");

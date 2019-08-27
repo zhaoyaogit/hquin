@@ -8,7 +8,7 @@
 
 #include <Channel.h>
 #include <EventLoop.h>
-#include <Timestap.h>
+#include <Timestamp.h>
 
 #include <unistd.h>
 
@@ -52,7 +52,7 @@ void Channel::disableAll() {
 }
 
 // The channle's event corresponding callback function.
-void Channel::handleEvent(Timestap receiveTime) {
+void Channel::handleEvent(Timestamp receiveTime) {
     if (event_.events & kErrorEvent) {
         closeCallback_(fd_);
     }

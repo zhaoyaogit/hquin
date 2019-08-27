@@ -1,5 +1,5 @@
 set(SRCS
-	Timestap.cpp
+	Timestamp.cpp
 	Log.cpp
 	Buffer.cpp
 	Channel.cpp
@@ -13,8 +13,9 @@ set(SRCS
 )
 
 add_subdirectory(http)
+add_subdirectory(j4on)
 
 add_library(hquin ${SRCS})
 
-target_link_libraries(hquin hquin_http)
+target_link_libraries(hquin hquin_http j4on)
 set(LIBRARY_OUTPUT_PATH lib)

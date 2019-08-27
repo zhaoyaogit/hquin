@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include <Timestap.h>
+#include <Timestamp.h>
 
 #include <sys/epoll.h>
 
@@ -21,7 +21,7 @@ class EventLoop;
 class Channel {
   public:
     typedef std::function<void(int)> EventCallback;
-    typedef std::function<void(Timestap)> ReadEventCallback;
+    typedef std::function<void(Timestamp)> ReadEventCallback;
     Channel(EventLoop *eventloop, int fd);
     Channel(const Channel &) = delete;
     Channel &operator=(const Channel &) = delete;
@@ -40,7 +40,7 @@ class Channel {
     void setCloseCallback(const EventCallback &cb) { closeCallback_ = cb; }
 
     // execute callback function depends on event type.
-    void handleEvent(Timestap receiveTime);
+    void handleEvent(Timestamp receiveTime);
 
     int fd() const { return fd_; }
 

@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Timestap.h>
+#include <Timestamp.h>
 
 #include <string>
 #include <map>
@@ -22,7 +22,7 @@ class HTTPRequest {
     enum Method { kInvalid, kGet, kPost };
     enum Version { kUnknown, kHTTP10, kHTTP11 };
 
-    HTTPRequest(Timestap receiveTime);
+    HTTPRequest(Timestamp receiveTime);
     ~HTTPRequest();
 
     Method method() const { return method_; }
@@ -38,8 +38,8 @@ class HTTPRequest {
         path_.assign(begin, end);
     }
 
-    void setTimestap(Timestap timestap) { receiveTime_ = timestap; }
-    Timestap receiveTime() const { return receiveTime_; }
+    void setTimestap(Timestamp timestamp) { receiveTime_ = timestamp; }
+    Timestamp receiveTime() const { return receiveTime_; }
 
     void handle(const std::string &request);
 
@@ -56,7 +56,7 @@ class HTTPRequest {
     std::map<std::string, std::string> headers() const { return headers_; }
 
   private:
-    Timestap receiveTime_;
+    Timestamp receiveTime_;
     Method method_;
     Version version_;
     std::string path_;

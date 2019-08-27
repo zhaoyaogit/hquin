@@ -6,7 +6,7 @@
 
 #include <EventLoop.h>
 #include <Channel.h>
-#include <Timestap.h>
+#include <Timestamp.h>
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -20,8 +20,8 @@ using namespace hquin;
 
 EventLoop *eventloop;
 
-void hello(Timestap timestap) {
-    std::cout << timestap.formatTimestap() << std::endl;
+void hello(Timestamp timestamp) {
+    std::cout << timestamp.formatTimestamp() << std::endl;
     eventloop->stopEvent();
     sleep(1);
 }

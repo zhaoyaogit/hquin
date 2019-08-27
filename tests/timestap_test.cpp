@@ -2,15 +2,15 @@
 // Author:  definezxh@163.com
 // Date:    2019/07/01 16:50:37
 // Desc:
-//   Timestap test.
+//   Timestamp test.
 
-#include <Timestap.h>
+#include <Timestamp.h>
 #include <iostream>
 
 using namespace hquin;
 
 int main() {
-    Timestap stap = Timestap::now();
-    std::cout << stap.stringifyTimestap() << std::endl;
-    std::cout << stap.formatTimestap() << std::endl;
+    Timestamp stap = Timestamp::now();
+    std::cout << stap.formatTimestamp() << std::endl;
+    std::cout << stap.formatTimestamp() << std::endl;
 }

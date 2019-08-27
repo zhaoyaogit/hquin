@@ -33,7 +33,7 @@ void HTTPServer::onConnection(const TcpConnectionPtr &conn) {
 }
 
 void HTTPServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf,
-                           Timestap receiveTime) {
+                           Timestamp receiveTime) {
     HTTPRequest req(receiveTime);
     // TcpConnection buffer must update readable bytes.
     req.handle(buf->fetchReadble());

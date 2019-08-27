@@ -70,12 +70,12 @@ void Epoller::fillFiredEvents(int numevents,
     }
 }
 
-Timestap Epoller::epoll(EventLoop *eventloop,
+Timestamp Epoller::epoll(EventLoop *eventloop,
                         std::vector<Channel *> &firedChannelList) {
     // call epoll_wait(2) with block.
     int numevents = ::epoll_wait(epfd_, events_.data(),
                                  static_cast<int>(events_.size()), 10000);
-    Timestap receiveTime = Timestap::now();
+    Timestamp receiveTime = Timestamp::now();
 
     fillFiredEvents(numevents, firedChannelList);
 

@@ -27,7 +27,7 @@ class HTTPServer {
 
     void onConnection(const TcpConnectionPtr &conn);
     void onMessage(const TcpConnectionPtr &conn, Buffer *buf,
-                   Timestap receiveTime);
+                   Timestamp receiveTime);
     void onRequest(const TcpConnectionPtr &conn, const HTTPRequest &req);
 
     void start();

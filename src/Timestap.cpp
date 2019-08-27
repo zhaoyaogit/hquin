@@ -1,10 +1,10 @@
-// File:    Timestap.cpp
+// File:    Timestamp.cpp
 // Author:  definezxh@163.com
 // Date:    2019/07/01 17:15:16
 // Desc:
-//   Wrapper of timestap.
+//   Wrapper of timestamp.
 
-#include <Timestap.h>
+#include <Timestamp.h>
 
 #include <sys/time.h>
 
@@ -12,16 +12,16 @@
 
 namespace hquin {
 
-Timestap Timestap::now() {
+Timestamp Timestamp::now() {
     // use gettimeofday(2) is 15% faster then std::chrono
     struct timeval tv;
     gettimeofday(&tv, NULL);
-    uint64_t timestap = tv.tv_sec * 1000000 + tv.tv_usec;
+    uint64_t timestamp = tv.tv_sec * 1000000 + tv.tv_usec;
 
-    return Timestap(timestap);
+    return Timestamp(timestamp);
 }
 
-std::string Timestap::formatTimestap() const {
+std::string Timestamp::formatTimestamp() const {
     time_t second = timestap_ / 1000000 + /* CST */ 8 * 3600;
     auto time = gmtime(&second);
     char buffer[32], format[40];
@@ -30,7 +30,7 @@ std::string Timestap::formatTimestap() const {
     return format;
 }
 
-std::string Timestap::stringifyTimestap() const {
+std::string Timestamp::formatTimestamp() const {
     return std::to_string(timestap_);
 }
 

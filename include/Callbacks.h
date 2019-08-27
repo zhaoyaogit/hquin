@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Timestap.h>
+#include <Timestamp.h>
 
 #include <functional>
 #include <memory>
@@ -20,7 +20,7 @@ typedef std::shared_ptr<TcpConnection> TcpConnectionPtr;
 
 typedef std::function<void(const TcpConnectionPtr &)> ConnectionCallback;
 
-typedef std::function<void(const TcpConnectionPtr &, Buffer *, Timestap)>
+typedef std::function<void(const TcpConnectionPtr &, Buffer *, Timestamp)>
     MessageCallback;
 
 typedef std::function<void(const TcpConnectionPtr &)> CloseCallback;

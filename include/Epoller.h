@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <Timestap.h>
+#include <Timestamp.h>
 
 #include <sys/epoll.h>
 
@@ -35,8 +35,8 @@ class Epoller {
     void fillFiredEvents(int numevents,
                          std::vector<Channel *> &firedChannelList);
 
-    // epoll_wait(2), and return receive timestap of new connection arrived.
-    Timestap epoll(EventLoop *eventloop,
+    // epoll_wait(2), and return receive timestamp of new connection arrived.
+    Timestamp epoll(EventLoop *eventloop,
                    std::vector<Channel *> &firedChannelList);
 
   private:
