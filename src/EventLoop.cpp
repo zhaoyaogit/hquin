@@ -23,12 +23,11 @@ __thread EventLoop *t_loopInThisThread = 0;
 EventLoop::EventLoop(size_t size)
     : stop_(false), looping_(false), callingPendingFunctors_(false),
       size_(size), wakeupFd_(::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC)),
+      threadId_(gettid()),
       wakeupChannel_(std::make_unique<Channel>(this, wakeupFd_)),
-      epoller_(std::make_unique<Epoller>()),
-      threadId_(std::this_thread::get_id()) {
+      epoller_(std::make_unique<Epoller>()) {
     if (wakeupFd_ < 0) {
         LOG_ERROR << "Failed in eventfd";
-        abort();
     } else {
         wakeupChannel_->setReadCallback(
             std::bind(&EventLoop::handleRead, this));
@@ -37,10 +36,8 @@ EventLoop::EventLoop(size_t size)
 
     if (t_loopInThisThread) {
         LOG_ERROR << "Another EventLoop "
-                  << *reinterpret_cast<size_t *>(&t_loopInThisThread)
-                  << " exists in this thread "
-                  << *reinterpret_cast<size_t *>(&threadId_);
-        abort();
+                  << *reinterpret_cast<size_t *>(t_loopInThisThread)
+                  << " exists in this thread " << threadId_;
     } else {
         t_loopInThisThread = this;
     }
@@ -79,14 +76,11 @@ void EventLoop::assertInLoopThread() {
 }
 
 void EventLoop::abortNotInLoopThread() {
-    std::thread::id threadId = std::this_thread::get_id();
+    pid_t threadId = gettid();
     LOG_ERROR << "EventLoop::abortNotInLoopThread - EventLoop "
               << *reinterpret_cast<size_t *>(this)
-              << " was created in threadId_ = "
-              << *reinterpret_cast<size_t *>(&threadId_)
-              << ", current thread id = "
-              << *reinterpret_cast<size_t *>(&threadId);
-    abort();
+              << " was created in threadId_ = " << threadId_
+              << ", current thread id = " << threadId;
 }
 
 void EventLoop::runInLoop(const Functor &func) {

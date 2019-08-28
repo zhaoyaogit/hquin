@@ -1,4 +1,5 @@
 set(SRCS
+	Util.cpp
 	Timestamp.cpp
 	Log.cpp
 	Buffer.cpp

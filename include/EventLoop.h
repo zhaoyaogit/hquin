@@ -8,6 +8,8 @@
 
 #pragma once
 
+#include <Util.h>
+
 #include <sys/eventfd.h>
 
 #include <functional>
@@ -45,9 +47,7 @@ class EventLoop {
     // loop must run in one thread.
     void abortNotInLoopThread();
 
-    bool isInLoopThread() const {
-        return threadId_ == std::this_thread::get_id();
-    }
+    bool isInLoopThread() const { return threadId_ == gettid(); }
 
     // run callback immediately in the loop thread.
     void runInLoop(const Functor &func);
@@ -76,11 +76,11 @@ class EventLoop {
     bool callingPendingFunctors_; // atomic
     size_t size_;                 // max event num in this event loop.
     int wakeupFd_;
+    pid_t threadId_;
     std::unique_ptr<Channel> wakeupChannel_;
     std::unique_ptr<Epoller> epoller_;
     std::vector<Channel *> firedChannelList_;
     std::vector<Functor> pendingFunctors_;
-    std::thread::id threadId_;
     std::mutex mutex_;
 };
 

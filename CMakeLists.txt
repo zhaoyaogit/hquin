@@ -4,7 +4,7 @@ project(hquin C CXX)
 set(CMAKE_CXX_COMPILER "g++")
 set(CXX_FLAGS
 	-std=c++17
-	-g
+	-O3
 	-Wall
 	-Werror
 	-Wno-unused-parameter

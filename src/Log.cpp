@@ -7,25 +7,16 @@
 
 #include <Log.h>
 #include <Timestamp.h>
+#include <Util.h>
 
-#include <unistd.h>
+#include <j4on/j4on.h>
+
 #include <fcntl.h>
-#include <sys/syscall.h>
 
 #include <libgen.h> // basename()
 #include <stdio.h>
 #include <assert.h>
 #include <math.h>
-
-#include <j4on/j4on.h>
-
-__thread pid_t tid = 0;
-
-pid_t gettid() {
-    if (tid == 0)
-        tid = syscall(__NR_gettid);
-    return tid;
-}
 
 namespace hquin {
 
