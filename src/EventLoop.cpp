@@ -30,7 +30,7 @@ EventLoop::EventLoop(size_t size)
         LOG_ERROR << "Failed in eventfd";
     } else {
         wakeupChannel_->setReadCallback(
-            std::bind(&EventLoop::handleRead, this));
+            [&](Timestamp receiveTime) { handleRead(); });
         wakeupChannel_->enableReading();
     }
 

@@ -23,7 +23,9 @@ TcpServer::TcpServer(EventLoop *loop, const InetAddress &listenAddr)
       acceptor_(std::make_unique<Acceptor>(eventloop_, listenAddr)),
       start_(false), nextConnId_(1) {
     acceptor_->setNewConnectionCallback(
-        std::bind(&TcpServer::newConnection, this, _1, _2));
+        [&](int sockfd, const InetAddress &peerAddr) {
+            newConnection(sockfd, peerAddr);
+        });
 }
 
 TcpServer::~TcpServer() {}
@@ -46,16 +48,17 @@ void TcpServer::newConnection(int sockfd, const InetAddress &peerAddr) {
     conn->setConnectionCallback(connectionCallback_);
     conn->setMessageCallback(messageCallback_);
 
-    conn->setCloseCallback(std::bind(&TcpServer::removeConnection, this, _1));
+    conn->setCloseCallback(
+        [&](const TcpConnectionPtr &conn) { removeConnection(conn); });
     conn->connectEstablished();
 }
 
 void TcpServer::removeConnection(const TcpConnectionPtr &conn) {
     size_t n = connections_.erase(conn->name());
-    LOG_INFO << "TcpServer::removeConnection [" << name_ << "] - connection "
-             << conn->name();
     assert(n == 1);
-    eventloop_->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn));
+
+    // lambda captrue conn as value.
+    eventloop_->queueInLoop([=]() { conn->connectDestroyed(); });
 }
 
 } // namespace hquin

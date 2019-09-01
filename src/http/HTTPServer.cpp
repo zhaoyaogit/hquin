@@ -18,9 +18,10 @@ namespace http {
 HTTPServer::HTTPServer(EventLoop *loop, InetAddress address)
     : eventloop_(loop), server_(eventloop_, address) {
     server_.setConnectionCallback(
-        std::bind(&HTTPServer::onConnection, this, _1));
+        [&](const TcpConnectionPtr &conn) { onConnection(conn); });
     server_.setMessageCallback(
-        std::bind(&HTTPServer::onMessage, this, _1, _2, _3));
+        [&](const TcpConnectionPtr &conn, Buffer *buffer,
+            Timestamp receiveTime) { onMessage(conn, buffer, receiveTime); });
 }
 
 void HTTPServer::start() {
@@ -29,7 +30,7 @@ void HTTPServer::start() {
 }
 
 void HTTPServer::onConnection(const TcpConnectionPtr &conn) {
-    LOG_WARN << conn->name() << " - new HTTP request.";
+    LOG_WARN << "new HTTP Request " << conn->peerAddress().stringifyHost();
 }
 
 void HTTPServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf,
@@ -50,6 +51,7 @@ void HTTPServer::onRequest(const TcpConnectionPtr &conn,
     httpCallback_(req, &response);
     Buffer buf;
     response.appendToBuffer(&buf);
+    LOG_DEBUG << buf.stringifyReadable();
     conn->send(buf.stringifyReadable());
     buf.retrieveAll();
     if (response.closeConnection())

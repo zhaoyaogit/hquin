@@ -21,7 +21,8 @@ Acceptor::Acceptor(EventLoop *eventloop, const InetAddress &listenAddr)
           ::socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0)),
       acceptChannel_(eventloop_, acceptSocket_.fd()), listenning_(false) {
     acceptSocket_.bindAddress(listenAddr);
-    acceptChannel_.setReadCallback(std::bind(&Acceptor::handleRead, this));
+    acceptChannel_.setReadCallback(
+        [&](Timestamp receiveTime) { handleRead(); });
 }
 
 Acceptor::~Acceptor() { ::close(acceptSocket_.fd()); }
