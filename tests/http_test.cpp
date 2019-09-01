@@ -21,12 +21,13 @@ using namespace hquin::http;
 extern char favicon[555];
 
 void onRequest(const HTTPRequest &req, HTTPResponse *resp) {
-    std::cout << "Headers " << req.method() << " " << req.path() << std::endl;
+    // std::cout << "Headers " << req.method() << " " << req.path() <<
+    // std::endl;
 
-    const std::map<std::string, std::string> &headers = req.headers();
-    for (const auto &header : headers) {
-        std::cout << header.first << ": " << header.second << std::endl;
-    }
+    // const std::map<std::string, std::string> &headers = req.headers();
+    // for (const auto &header : headers) {
+    //     std::cout << header.first << ": " << header.second << std::endl;
+    // }
 
     if (req.path() == "/") {
         resp->setStatusCode(HTTPResponse::kOK);

@@ -320,7 +320,7 @@ void Logger::flush() { logFile_.flush(); }
 LogConfig readConfig() {
     LogConfig config;
 
-    j4on::J4onParser parser("./config.json");
+    j4on::J4onParser parser("/etc/hquin.conf");
     parser.parse();
 
     j4on::Value v = parser.getValue("file_name");
