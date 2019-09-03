@@ -5,6 +5,8 @@ set(SRCS
 	Buffer.cpp
 	Channel.cpp
 	EventLoop.cpp
+	EventLoopThread.cpp
+	EventLoopThreadPool.cpp
 	Epoller.cpp
 	InetAddress.cpp
 	Socket.cpp

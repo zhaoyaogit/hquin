@@ -20,7 +20,6 @@ class EventLoop;
 class Channel;
 class Socket;
 
-
 // establish a new tcp connection.
 class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
   public:
@@ -28,6 +27,8 @@ class TcpConnection : public std::enable_shared_from_this<TcpConnection> {
     TcpConnection(EventLoop *loop, std::string name, int sockfd,
                   const InetAddress &peerAddr);
     ~TcpConnection();
+
+    EventLoop *getLoop() const { return eventloop_; }
 
     const std::string &name() const { return name_; }
     const InetAddress &peerAddress() const { return peerAddr_; }

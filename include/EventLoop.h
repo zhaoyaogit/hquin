@@ -28,14 +28,12 @@ class EventLoop {
   public:
     typedef std::function<void()> Functor;
 
-    EventLoop(size_t size);
+    EventLoop();
     EventLoop(const EventLoop &) = delete;
     EventLoop &operator=(const EventLoop &) = delete;
     ~EventLoop();
 
-    size_t size() const { return size_; }
-
-    void stopEvent() { stop_ = true; }
+    void stop() { stop_ = true; }
 
     // loop event queue, execute the callback function by ordinal.
     // if an event takes too long, it will seriously affect other ready event.
@@ -74,7 +72,6 @@ class EventLoop {
     bool stop_;                   // atomic
     bool looping_;                // atomic
     bool callingPendingFunctors_; // atomic
-    size_t size_;                 // max event num in this event loop.
     int wakeupFd_;
     pid_t threadId_;
     std::unique_ptr<Channel> wakeupChannel_;

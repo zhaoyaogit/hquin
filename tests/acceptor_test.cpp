@@ -21,7 +21,7 @@ void getTime(int fd, const InetAddress &address) {
 }
 
 int main() {
-    EventLoop loop(32);
+    EventLoop loop;
     InetAddress address(8002);
     Acceptor acceptor(&loop, address);
     acceptor.setNewConnectionCallback(getTime);

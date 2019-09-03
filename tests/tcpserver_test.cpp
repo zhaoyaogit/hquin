@@ -32,7 +32,7 @@ void onMessage(const TcpConnectionPtr &conn, Buffer *buf, Timestamp timestamp) {
 }
 
 int main() {
-    EventLoop loop(32);
+    EventLoop loop;
     InetAddress address(8002);
     TcpServer server(&loop, address);
 

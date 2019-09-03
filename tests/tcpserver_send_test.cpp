@@ -35,7 +35,7 @@ void onMessage(const TcpConnectionPtr &conn, Buffer *buf, Timestamp timestamp) {
 int main(int argc, char *argv[]) {
     int port = atoi(argv[1]);
 
-    EventLoop loop(32);
+    EventLoop loop;
     InetAddress address(port);
     TcpServer server(&loop, address);
 

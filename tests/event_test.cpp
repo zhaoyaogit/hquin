@@ -22,12 +22,12 @@ EventLoop *eventloop;
 
 void hello(Timestamp timestamp) {
     std::cout << timestamp.formatTimestamp() << std::endl;
-    eventloop->stopEvent();
+    eventloop->stop();
     sleep(1);
 }
 
 int main() {
-    EventLoop loop(1024);
+    EventLoop loop;
     eventloop = &loop;
 
     int timerfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK | TFD_CLOEXEC);

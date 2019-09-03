@@ -20,10 +20,9 @@ namespace hquin {
 
 __thread EventLoop *t_loopInThisThread = 0;
 
-EventLoop::EventLoop(size_t size)
+EventLoop::EventLoop()
     : stop_(false), looping_(false), callingPendingFunctors_(false),
-      size_(size), wakeupFd_(::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC)),
-      threadId_(gettid()),
+      wakeupFd_(::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC)), threadId_(gettid()),
       wakeupChannel_(std::make_unique<Channel>(this, wakeupFd_)),
       epoller_(std::make_unique<Epoller>()) {
     if (wakeupFd_ < 0) {

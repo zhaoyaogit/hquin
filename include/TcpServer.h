@@ -17,8 +17,9 @@
 
 namespace hquin {
 
-class EventLoop;
 class Acceptor;
+class EventLoop;
+class EventLoopThreadPool;
 
 class TcpServer {
   public:
@@ -39,6 +40,8 @@ class TcpServer {
         messageCallback_ = cb;
     }
 
+    void setThreadNum(int numThreads);
+
   private:
     // in event loop.
     void newConnection(int sockfd, const InetAddress &peerAddr);
@@ -49,6 +52,7 @@ class TcpServer {
     EventLoop *eventloop_;
     const std::string name_;
     std::unique_ptr<Acceptor> acceptor_;
+    std::unique_ptr<EventLoopThreadPool> threadPool_;
     ConnectionCallback connectionCallback_;
     MessageCallback messageCallback_;
     bool start_;
