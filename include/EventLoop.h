@@ -33,7 +33,7 @@ class EventLoop {
     EventLoop &operator=(const EventLoop &) = delete;
     ~EventLoop();
 
-    void stop() { stop_ = true; }
+    void stop();
 
     // loop event queue, execute the callback function by ordinal.
     // if an event takes too long, it will seriously affect other ready event.
@@ -67,6 +67,8 @@ class EventLoop {
     // handle wake up eventfd
     void handleRead();
     void wakeup();
+
+    pid_t threadId() const { return threadId_; }
 
   private:
     bool stop_;                   // atomic

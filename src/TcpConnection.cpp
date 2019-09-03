@@ -24,7 +24,8 @@ TcpConnection::TcpConnection(EventLoop *loop, std::string name, int sockfd,
       channel_(std::make_unique<Channel>(eventloop_, sockfd)),
       socket_(std::make_unique<Socket>(sockfd)), peerAddr_(peerAddr) {
     LOG_INFO << "new TcpConnection " << peerAddr_.stringifyHost()
-             << ", fd = " << sockfd;
+             << ", fd = " << sockfd
+             << ", loop thread = " << eventloop_->threadId();
     channel_->setReadCallback(
         [&](Timestamp receiveTime) { handleRead(receiveTime); });
     channel_->setWriteCallback([&](int fd) { handleWrite(); });
@@ -33,7 +34,9 @@ TcpConnection::TcpConnection(EventLoop *loop, std::string name, int sockfd,
 }
 
 TcpConnection::~TcpConnection() {
-    LOG_INFO << "TcpConnection closed " << name_ << ", fd = " << channel_->fd();
+    LOG_INFO << "TcpConnection closed " << peerAddr_.stringifyHost()
+             << ", fd = " << channel_->fd()
+             << ", loop thread = " << eventloop_->threadId();
 }
 
 // send data to peer socket.
@@ -65,6 +68,7 @@ void TcpConnection::send(const std::string &message) {
 }
 
 void TcpConnection::connectEstablished() {
+    eventloop_->assertInLoopThread();
     setState(kConnected);
     channel_->enableReading();
     connectionCallback_(shared_from_this());
@@ -84,12 +88,14 @@ void TcpConnection::shutdownInLoop() {
 }
 
 void TcpConnection::connectDestroyed() {
+    eventloop_->assertInLoopThread();
     setState(kDisconnected);
     channel_->disableAll();
     eventloop_->removeChannel(channel_.get());
 }
 
 void TcpConnection::handleRead(Timestamp receiveTime) {
+    eventloop_->assertInLoopThread();
     int saveErrno = 0;
     const int n = inputBuffer_.readFd(channel_->fd(), &saveErrno);
     if (n > 0) {
@@ -104,6 +110,7 @@ void TcpConnection::handleRead(Timestamp receiveTime) {
 // write data to peer socket fd from output buffer.
 // reduce fd use.
 void TcpConnection::handleWrite() {
+    eventloop_->assertInLoopThread();
     if (channel_->isWriting()) {
         ssize_t n = ::write(channel_->fd(), outputBuffer_.beginRead(),
                             outputBuffer_.readableBytes());
@@ -123,8 +130,12 @@ void TcpConnection::handleWrite() {
 }
 
 void TcpConnection::handleClose() {
-    LOG_INFO << "TcpConnection closing " << name_
-             << ", fd = " << channel_->fd();
+    eventloop_->assertInLoopThread();
+
+    LOG_INFO << "TcpConnection closing " << peerAddr_.stringifyHost()
+             << ", fd = " << channel_->fd()
+             << ", loop thread = " << eventloop_->threadId();
+
     assert(state_ == kConnected || state_ == kDisconnecting);
     channel_->disableAll();
     closeCallback_(shared_from_this());

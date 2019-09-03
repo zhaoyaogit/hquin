@@ -47,9 +47,17 @@ EventLoop::~EventLoop() {
     t_loopInThisThread = NULL;
 }
 
+void EventLoop::stop() {
+    stop_ = true;
+    if (!isInLoopThread())
+        wakeup();
+}
+
 // loop the event
 void EventLoop::loop() {
     assert(!looping_);
+    assertInLoopThread();
+
     looping_ = true;
     stop_ = false;
 
@@ -76,14 +84,12 @@ void EventLoop::assertInLoopThread() {
 
 void EventLoop::abortNotInLoopThread() {
     pid_t threadId = gettid();
-    LOG_ERROR << "EventLoop::abortNotInLoopThread - EventLoop "
-              << *reinterpret_cast<size_t *>(this)
+    LOG_FATAL << "EventLoop " << *reinterpret_cast<size_t *>(this)
               << " was created in threadId_ = " << threadId_
               << ", current thread id = " << threadId;
 }
 
 void EventLoop::runInLoop(const Functor &func) {
-    // in current thread exec callback straightly.
     if (isInLoopThread())
         func();
     else
