@@ -23,8 +23,8 @@ TcpConnection::TcpConnection(EventLoop *loop, std::string name, int sockfd,
     : eventloop_(loop), name_(name), state_(kConnecting),
       channel_(std::make_unique<Channel>(eventloop_, sockfd)),
       socket_(std::make_unique<Socket>(sockfd)), peerAddr_(peerAddr) {
-    LOG_INFO << "new TcpConnection " << peerAddr_.stringifyHost()
-             << ", fd = " << sockfd
+    LOG_INFO << "new TcpConnection[" << name_ << "] "
+             << peerAddr_.stringifyHost() << ", fd = " << sockfd
              << ", loop thread = " << eventloop_->threadId();
     channel_->setReadCallback(
         [&](Timestamp receiveTime) { handleRead(receiveTime); });
@@ -34,8 +34,8 @@ TcpConnection::TcpConnection(EventLoop *loop, std::string name, int sockfd,
 }
 
 TcpConnection::~TcpConnection() {
-    LOG_INFO << "TcpConnection closed " << peerAddr_.stringifyHost()
-             << ", fd = " << channel_->fd()
+    LOG_INFO << "TcpConnection closed [" << name_ << "] "
+             << peerAddr_.stringifyHost() << ", fd = " << channel_->fd()
              << ", loop thread = " << eventloop_->threadId();
 }
 
@@ -132,8 +132,8 @@ void TcpConnection::handleWrite() {
 void TcpConnection::handleClose() {
     eventloop_->assertInLoopThread();
 
-    LOG_INFO << "TcpConnection closing " << peerAddr_.stringifyHost()
-             << ", fd = " << channel_->fd()
+    LOG_INFO << "TcpConnection closing [" << name_ << "] "
+             << peerAddr_.stringifyHost() << ", fd = " << channel_->fd()
              << ", loop thread = " << eventloop_->threadId();
 
     assert(state_ == kConnected || state_ == kDisconnecting);
