@@ -32,10 +32,13 @@ class HTTPServer {
 
     void start();
 
+    void setThreadNum(int numThread);
+
   private:
     EventLoop *eventloop_;
     TcpServer server_;
     HTTPCallback httpCallback_;
+    int numThread_;
 };
 
 } // namespace http

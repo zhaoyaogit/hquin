@@ -16,7 +16,7 @@ namespace hquin {
 namespace http {
 
 HTTPServer::HTTPServer(EventLoop *loop, InetAddress address)
-    : eventloop_(loop), server_(eventloop_, address) {
+    : eventloop_(loop), server_(eventloop_, address), numThread_(0) {
     server_.setConnectionCallback(
         [&](const TcpConnectionPtr &conn) { onConnection(conn); });
     server_.setMessageCallback(
@@ -25,12 +25,13 @@ HTTPServer::HTTPServer(EventLoop *loop, InetAddress address)
 }
 
 void HTTPServer::start() {
-    LOG_WARN << "HTTPServer[" << server_.name() << "]";
+    LOG_INFO << "HTTPServer[" << server_.name() << "]";
     server_.start();
+    server_.setThreadNum(numThread_);
 }
 
 void HTTPServer::onConnection(const TcpConnectionPtr &conn) {
-    LOG_WARN << "new HTTP Request " << conn->peerAddress().stringifyHost();
+    LOG_INFO << "new HTTP Request " << conn->peerAddress().stringifyHost();
 }
 
 void HTTPServer::onMessage(const TcpConnectionPtr &conn, Buffer *buf,
@@ -51,12 +52,13 @@ void HTTPServer::onRequest(const TcpConnectionPtr &conn,
     httpCallback_(req, &response);
     Buffer buf;
     response.appendToBuffer(&buf);
-    LOG_DEBUG << buf.stringifyReadable();
     conn->send(buf.stringifyReadable());
     buf.retrieveAll();
     if (response.closeConnection())
         conn->shutdown();
 }
+
+void HTTPServer::setThreadNum(int numThread) { numThread_ = numThread; }
 
 } // namespace http
 } // namespace hquin
