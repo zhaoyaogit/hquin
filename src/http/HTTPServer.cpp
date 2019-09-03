@@ -26,8 +26,8 @@ HTTPServer::HTTPServer(EventLoop *loop, InetAddress address)
 
 void HTTPServer::start() {
     LOG_INFO << "HTTPServer[" << server_.name() << "]";
-    server_.start();
     server_.setThreadNum(numThread_);
+    server_.start();
 }
 
 void HTTPServer::onConnection(const TcpConnectionPtr &conn) {
