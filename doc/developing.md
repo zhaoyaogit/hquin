@@ -6,7 +6,7 @@
 - [关于类中的std::bind()](#bind)
 - [对类的封装的思考](#wrapper)
 - [TcpConnection 生命周期的坑](#shard_ptr)
-
+- [将 std::bind() 替换为lambda](#bind2lambda)
 
 #### <span id = "one_way_dep"> 类应为单向依赖 </span>
 单向依赖，可以屏蔽依赖类的细节，而依赖类则并不知道被依赖的存在，简化设计的流程。如 `Acceptor` 和 `TcpServer`， 对于 `TCPServer` 来说，并需要知道 `Acceptor` 的实现细节，只需要获得一个新的连接而已，而 `Acceptor` 也不清楚 `TCPServer` 的存在。
@@ -50,7 +50,7 @@ int connfd = newConnAddr.acceptSockAddrInet(sockfd_);
 // 内存上多出一个对 该对象的应用 use_count() 就会 + 1.
 // use_count() + 1 
 TcpConnectionPtr conn =
-    std::make_shared<TcpConnection>(eventloop_, connName, sockfd, peerAddr);
+    std::make_shared<TcpConnection>(ioLoop, connName, sockfd, peerAddr);
 // use_count() + 1
 connections_[connName] = conn;
 
@@ -62,9 +62,19 @@ callback(); // 执行完后，自动 - 1
 size_t n = connections_.erase(conn->name());
 
 // use_count() - 1, 实际上取消对该对象的引用是在 Epller::removeEvent() 中
-eventloop_->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn));
+ioLoop->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn));
 ```
 关闭连接从 map 中删除减少一次，如果关闭函数执行完成，改对象就会被析构。
 但是代码的逻辑 处理可读函数在可读为0时会关闭此连接，而在事件循环中处理可写函数会继续执行，这样可写函数就会访问未知逻辑直接挂掉，所以这里推迟关闭函数的执行，使其在下一次事件循环中被调用。
 
 还有一个问题，如果关闭函数不执行的话，对象会一直存在不被析构，文件描述符就不会被回收。
+
+#### <span id = "bind2lambda"> 将std::bind()替换为lambda </span>
+std::bind() 使用的一些想法继续保留在doc中。
+使用 std::bind() 的可读性不是很友好，在C++ 14后可以完全用lambda代替std::bind()。替换的方式很简单，但是这个有一个非常需要谨慎的地方就是 TcpConnection 的生命周期的问题，
+```cpp
+ioLoop->queueInLoop(std::bind(&TcpConnection::connectDestroyed, conn));
+// 使用 lambda 替换 std::bind()
+ioLoop->queueInLoop([=]() { conn->connectDestroyed(); });
+```
+在于捕获是使用值捕获还是引用捕获的问题，如果使用引用捕获，函数结束 TcpConnection的生命周期就结束，因为取的引用的引用并不能延长其生命周期。改成值捕获后增加 TcpConnectionPtr(std::shared_ptr) 的引用计数，使得TcpConnection 的生命周期不会立刻结束。
