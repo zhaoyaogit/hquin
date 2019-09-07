@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.9)
 project(hquin C CXX)
 
-set(CMAKE_CXX_COMPILER "g++")
+set(CMAKE_CXX_COMPILER "clang++")
 set(CXX_FLAGS
 	-std=c++17
 	-O3
@@ -10,7 +10,6 @@ set(CXX_FLAGS
 	-Wno-unused-parameter
 	-march=native
 	-fno-inline
-	-lpthread
 	# -MMD
 )
 string(REPLACE ";" " " CMAKE_CXX_FLAGS "${CXX_FLAGS}")

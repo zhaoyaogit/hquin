@@ -20,7 +20,7 @@ const uint32_t Channel::kWriteEvent = EPOLLOUT;
 const uint32_t Channel::kErrorEvent = EPOLLERR | EPOLLHUP;
 
 Channel::Channel(EventLoop *eventloop, int fd)
-    : eventloop_(eventloop), fd_(fd), event_{0} {
+    : eventloop_(eventloop), fd_(fd), event_{0, {0}} {
     event_.data.fd = fd_;
 }
 

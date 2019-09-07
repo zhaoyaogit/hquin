@@ -12,9 +12,7 @@ namespace hquin {
 
 EventLoopThread::EventLoopThread()
     : loop_(nullptr), exiting_(false),
-      thread_(&EventLoopThread::threadFunc, this) {
-    LOG_TRACE << "IO Event Loop created.";
-}
+      thread_(&EventLoopThread::threadFunc, this) {}
 
 EventLoopThread::~EventLoopThread() {
     exiting_ = true;
@@ -30,6 +28,9 @@ EventLoop *EventLoopThread::startLoop() {
             cond_.wait(lock);
         loop = loop_;
     }
+
+    LOG_INFO << "IO Loop created at " << loop->threadId();
+
     return loop;
 }
 

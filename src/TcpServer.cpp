@@ -34,6 +34,9 @@ TcpServer::TcpServer(EventLoop *loop, const InetAddress &listenAddr)
 TcpServer::~TcpServer() {}
 
 void TcpServer::start() {
+    assert(!start_);
+    start_ = true;
+
     threadPool_->start();
 
     assert(!acceptor_->listenning());

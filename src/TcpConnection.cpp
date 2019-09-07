@@ -131,11 +131,6 @@ void TcpConnection::handleWrite() {
 
 void TcpConnection::handleClose() {
     eventloop_->assertInLoopThread();
-
-    LOG_INFO << "TcpConnection closing [" << name_ << "] "
-             << peerAddr_.stringifyHost() << ", fd = " << channel_->fd()
-             << ", loop thread = " << eventloop_->threadId();
-
     assert(state_ == kConnected || state_ == kDisconnecting);
     channel_->disableAll();
     closeCallback_(shared_from_this());
