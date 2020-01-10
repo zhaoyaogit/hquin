@@ -37,12 +37,12 @@ EventLoop *EventLoopThread::startLoop() {
 void EventLoopThread::threadFunc() {
     EventLoop loop;
     {
-        std::lock_guard lock(mutex_);
+        std::lock_guard<std::mutex> lock(mutex_);
         loop_ = &loop;
         cond_.notify_one();
     }
     loop.loop();
-    std::lock_guard lock(mutex_);
+    std::lock_guard<std::mutex> lock(mutex_);
     loop_ = nullptr;
 }
 
