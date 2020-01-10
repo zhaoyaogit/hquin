@@ -1,7 +1,6 @@
 set(SRCS
 	Util.cpp
 	Timestamp.cpp
-	Log.cpp
 	Buffer.cpp
 	Channel.cpp
 	EventLoop.cpp
@@ -16,9 +15,9 @@ set(SRCS
 )
 
 add_subdirectory(http)
-add_subdirectory(j4on)
 
 add_library(hquin ${SRCS})
 
-target_link_libraries(hquin hquin_http j4on)
-set(LIBRARY_OUTPUT_PATH lib)
+target_link_libraries(hquin hquin_http)
+
+set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
