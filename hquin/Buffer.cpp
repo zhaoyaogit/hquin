@@ -6,7 +6,6 @@
 //   considering performance for the time being.
 
 #include <Buffer.h>
-#include <Log.h>
 
 #include <unistd.h>
 

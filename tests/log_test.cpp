@@ -4,10 +4,11 @@
 // Desc:
 //   logger test.
 
-#include <Log.h>
 #include <Timestamp.h>
 
 #include <iostream>
+
+#include <lim/Log.h>
 
 using namespace hquin;
 

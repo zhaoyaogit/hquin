@@ -1,7 +1,6 @@
 cmake_minimum_required(VERSION 2.9)
 project(hquin C CXX)
 
-set(CMAKE_CXX_COMPILER "g++")
 set(CXX_FLAGS
 	-std=c++14
 	-Og

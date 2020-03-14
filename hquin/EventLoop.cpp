@@ -10,11 +10,12 @@
 #include <Channel.h>
 #include <Epoller.h>
 #include <Timestamp.h>
-#include <Log.h>
 
 #include <unistd.h>
-
 #include <assert.h>
+
+#include <lim/Log.h>
+
 
 namespace hquin {
 

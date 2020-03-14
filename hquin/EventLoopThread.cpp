@@ -6,7 +6,8 @@
 
 #include <EventLoopThread.h>
 #include <EventLoop.h>
-#include <Log.h>
+
+#include <lim/Log.h>
 
 namespace hquin {
 

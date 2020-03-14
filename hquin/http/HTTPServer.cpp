@@ -6,7 +6,7 @@
 
 #include <http/HTTPServer.h>
 #include <Buffer.h>
-#include <Log.h>
+#include <lim/Log.h>
 #include <InetAddress.h>
 #include <EventLoop.h>
 
