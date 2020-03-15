@@ -21,10 +21,12 @@ using namespace std::placeholders;
 namespace hquin {
 
 TcpServer::TcpServer(EventLoop *loop, const InetAddress &listenAddr)
-    : eventloop_(loop), name_(listenAddr.stringifyHost()),
+    : eventloop_(loop),
+      name_(listenAddr.stringifyHost()),
       acceptor_(std::make_unique<Acceptor>(eventloop_, listenAddr)),
       threadPool_(std::make_unique<EventLoopThreadPool>(eventloop_)),
-      start_(false), nextConnId_(1) {
+      start_(false),
+      nextConnId_(1) {
     acceptor_->setNewConnectionCallback(
         [&](int sockfd, const InetAddress &peerAddr) {
             newConnection(sockfd, peerAddr);
@@ -68,11 +70,16 @@ void TcpServer::newConnection(int sockfd, const InetAddress &peerAddr) {
     conn->setMessageCallback(messageCallback_);
 
     conn->setCloseCallback(
-        [&](const TcpConnectionPtr &conn) { removeConnection(conn); });
+        [=](const TcpConnectionPtr &conn) { removeConnection(conn); });
     ioLoop->runInLoop([=]() { conn->connectEstablished(); });
 }
 
 void TcpServer::removeConnection(const TcpConnectionPtr &conn) {
+    eventloop_->runInLoop([=]() { removeConnectionInLoop(conn); });
+}
+
+void TcpServer::removeConnectionInLoop(const TcpConnectionPtr &conn) {
+    eventloop_->assertInLoopThread();
     size_t n = connections_.erase(conn->name());
     assert(n == 1);
 

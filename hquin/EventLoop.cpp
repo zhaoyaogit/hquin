@@ -16,14 +16,16 @@
 
 #include <lim/Log.h>
 
-
 namespace hquin {
 
 __thread EventLoop *t_loopInThisThread = 0;
 
 EventLoop::EventLoop()
-    : stop_(false), looping_(false), callingPendingFunctors_(false),
-      wakeupFd_(::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC)), threadId_(gettid()),
+    : stop_(false),
+      looping_(false),
+      callingPendingFunctors_(false),
+      wakeupFd_(::eventfd(0, EFD_NONBLOCK | EFD_CLOEXEC)),
+      threadId_(gettid()),
       wakeupChannel_(std::make_unique<Channel>(this, wakeupFd_)),
       epoller_(std::make_unique<Epoller>()) {
     if (wakeupFd_ < 0) {
